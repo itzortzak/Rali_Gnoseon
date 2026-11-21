@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#10262a">
-<title>Ράλι Γνώσεων 3D v3.1 — Αρχαία Ελληνικά Α΄ Λυκείου</title>
+<title>Ράλι Γνώσεων 3D v3.2 — Αρχαία Ελληνικά Α΄ Λυκείου</title>
 <style>
 :root { --dark:#10262a; --dark2:#173438; --ink:#163038; --mint:#b3e6c7; --gold:#f6cc62; --cream:#f5f3ea; --line:#dbe4dc; --muted:#627677; --red:#b44a36; }
 *{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:system-ui,-apple-system,"Segoe UI",Arial,sans-serif;background:#eef2ed;color:var(--ink)}
@@ -54,11 +54,34 @@ button,input{font:inherit}button{cursor:pointer}button:disabled{opacity:.5;curso
 .dialog.intro .car-picker{padding:10px 12px;margin:0 0 11px}
 .dialog.intro p[style]{margin-bottom:9px!important}
 @media(max-width:600px){.dialog.intro{padding:17px 15px}.dialog.intro h1{font-size:31px}.car-swatch{padding:6px 8px;font-size:11px}}
+
+.finish-dialog{width:min(780px,100%)}
+.result-detail{font-size:12px!important;color:#536c60!important;margin:-11px 0 16px!important;text-align:center}
+.review-panel[hidden]{display:none!important}
+.review-panel{border:1px solid #d7e3d8;border-radius:12px;background:#fffefa;margin:10px 0 17px;overflow:hidden}
+.review-toolbar{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;padding:12px;background:#e8f1e9;border-bottom:1px solid #dae4db}
+.review-toolbar strong{font-size:13px;color:#24523d}.review-controls{display:flex;gap:7px}
+.review-filter{font:700 12px system-ui;color:#315943;background:#fff;border:1px solid #bcd1c3;border-radius:8px;padding:8px 10px}
+.review-filter[aria-pressed="true"]{background:#1c523e;color:#fff}
+.review-list{max-height:335px;overflow:auto;padding:4px 12px}
+.review-entry{padding:12px 0;border-bottom:1px solid #e2e8e3}.review-entry:last-child{border:0}
+.review-head{display:flex;justify-content:space-between;gap:8px;align-items:flex-start;margin-bottom:7px;font-size:11px;color:#527060}
+.review-head b{padding:3px 7px;border-radius:7px;background:#dceee0;color:#256344}
+.review-head b.wrong{background:#fae7df;color:#9b4231}
+.review-q{font-size:13px;font-weight:750;line-height:1.5;margin:0 0 9px!important;color:#28453d!important}
+.review-pair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.review-answer{padding:9px;border:1px solid #dbe6dc;border-radius:9px;background:#f5f9f5;min-width:0;overflow-wrap:anywhere}
+.review-answer.wrong{background:#fff2eb;border-color:#ead1c2}
+.review-answer strong{display:block;font-size:10px;color:#5a7164;margin-bottom:4px}
+.review-answer p{font-size:12px!important;line-height:1.5!important;margin:0!important;color:#234238!important}
+.review-explain{font-size:12px!important;color:#577064!important;line-height:1.5!important;margin:8px 0 0!important}
+.review-empty{text-align:center;padding:17px;font-size:13px;color:#476953}
+@media(max-width:600px){.review-pair{grid-template-columns:1fr}.review-list{max-height:280px}.finish-dialog{padding:17px 15px}}
 </style>
 </head>
 <body>
 <div class="page">
-  <div class="masthead"><div class="brand"><div class="brandmark">R↗</div><div><strong>ΡΑΛΙ ΓΝΩΣΕΩΝ <span style="color:#36755d">3D</span></strong><small>ΑΡΧΑΙΑ ΕΛΛΗΝΙΚΑ · Α΄ ΛΥΚΕΙΟΥ</small></div></div><span class="chip">ΤΡΑΠΕΖΑ ΘΕΜΑΤΩΝ · v3.1</span></div>
+  <div class="masthead"><div class="brand"><div class="brandmark">R↗</div><div><strong>ΡΑΛΙ ΓΝΩΣΕΩΝ <span style="color:#36755d">3D</span></strong><small>ΑΡΧΑΙΑ ΕΛΛΗΝΙΚΑ · Α΄ ΛΥΚΕΙΟΥ</small></div></div><span class="chip">ΤΡΑΠΕΖΑ ΘΕΜΑΤΩΝ · v3.2</span></div>
   <main class="stage" id="stage">
     <canvas id="world" aria-label="Τρισδιάστατη πίστα ράλι" tabindex="0"></canvas>
     <div class="topbar">
@@ -100,7 +123,24 @@ button,input{font:inherit}button{cursor:pointer}button:disabled{opacity:.5;curso
       </div>
     </section>
     <section class="layer hidden" id="pauseLayer" aria-label="Παύση"><div class="dialog" style="max-width:420px;text-align:center"><div class="eyebrow">ΑΓΩΝΑΣ ΣΕ ΠΑΥΣΗ</div><h2>Μικρή ανάπαυλα</h2><p>Ο χρόνος δεν μετρά όσο ο αγώνας είναι σε παύση.</p><button class="primary" id="resumeBtn">ΣΥΝΕΧΕΙΑ ΑΓΩΝΑ →</button></div></section>
-    <section class="layer hidden" id="finishLayer" aria-label="Αποτελέσματα"><div class="dialog"><div class="eyebrow">ΤΕΡΜΑΤΙΣΜΟΣ · ΑΡΧΑΙΑ ΕΛΛΗΝΙΚΑ Α΄ ΛΥΚΕΙΟΥ</div><h2>Ολοκλήρωσες το Ράλι Γνώσεων!</h2><p id="finishMessage">Ανασκόπηση της διαδρομής και των απαντήσεών σου.</p><div class="stats-grid"><div class="stat"><strong id="finalPoints">0</strong><span>Τελική βαθμολογία</span></div><div class="stat"><strong id="finalCorrect">0 / 170</strong><span>Σωστές απαντήσεις</span></div><div class="stat"><strong id="finalTime">00:00</strong><span>Χρόνος οδήγησης</span></div></div><div class="summary-answers" id="answerHistory"></div><button class="primary" id="restartBtn">ΝΕΟΣ ΑΓΩΝΑΣ →</button><p class="small-note">Ο τερματισμός προϋποθέτει απάντηση και στα 170 ερωτήματα, όχι απαραίτητα σωστή απάντηση σε όλα. Η βαθμολογία αξιοποιείται αποκλειστικά στη συγκεκριμένη συνεδρία. Δεν αποθηκεύονται ονόματα ή άλλα στοιχεία μαθητών.</p></div></section>
+    <section class="layer hidden" id="finishLayer" aria-label="Αποτελέσματα"><div class="dialog finish-dialog">
+<div class="eyebrow">ΤΕΡΜΑΤΙΣΜΟΣ · ΑΡΧΑΙΑ ΕΛΛΗΝΙΚΑ Α΄ ΛΥΚΕΙΟΥ</div>
+<h2>Ολοκλήρωσες το Ράλι Γνώσεων!</h2>
+<p id="finishMessage"></p>
+<div class="stats-grid">
+<div class="stat"><strong id="finalPoints">0</strong><span>Τελική βαθμολογία</span></div>
+<div class="stat"><strong id="finalCorrect">0 / 170</strong><span>Σωστές απαντήσεις</span></div>
+<div class="stat"><strong id="finalTime">00:00</strong><span>Συνολικός χρόνος</span></div></div>
+<p class="result-detail">Χρόνος οδήγησης: <b id="finalDrivingTime">00:00</b> · Ο συνολικός χρόνος περιλαμβάνει και τις ερωτήσεις, όχι τις παύσεις.</p>
+<button type="button" class="primary" id="reviewToggle" aria-expanded="false" aria-controls="reviewPanel">ΠΡΟΒΟΛΗ ΑΠΑΝΤΗΣΕΩΝ (170) ↓</button>
+<section class="review-panel" id="reviewPanel" hidden aria-label="Ανασκόπηση απαντήσεων">
+<div class="review-toolbar"><strong id="reviewCount">170 απαντήσεις</strong><div class="review-controls">
+<button type="button" class="review-filter" id="reviewAll" aria-pressed="true">Όλες</button>
+<button type="button" class="review-filter" id="reviewWrong" aria-pressed="false">Μόνο λανθασμένες</button></div></div>
+<div id="answerHistory" class="review-list" tabindex="0"></div></section>
+<button class="primary" id="restartBtn">ΝΕΟΣ ΑΓΩΝΑΣ →</button>
+<p class="small-note">Ο τερματισμός επιτρέπεται μόνο όταν έχουν απαντηθεί και τα 170 ερωτήματα. Δεν αποστέλλονται προσωπικά δεδομένα σε διακομιστή.</p>
+</div></section>
   </main>
   <div class="footer"><a href="https://ebooks.edu.gr/ebooks/v/html/8547/2662/Archaioi-Ellines-Istoriografoi_A-Lykeiou_html-empl/indexab.html" rel="noopener noreferrer" target="_blank">Επίσημο σχολικό βιβλίο ↗</a><span id="renderModeNote" aria-live="polite"></span></div>
 </div>
@@ -138,23 +178,76 @@ function biomeIndexForZ(z){let index=0;for(let b=1;b<BIOMES.length;b++)if(z>=CHE
 function biomeIndexForStage(s){return Math.min(BIOMES.length-1,Math.floor(s/10));}
 
 const keys={};
-const game={mode:'intro',speed:0,z:0,lane:0,laneSpeed:0,steer:0,time:0,score:0,correct:0,station:0,question:0,localQuestion:0,selected:null,history:[],hits:new Set(),crashes:0};
+const game={mode:'intro',speed:0,z:0,lane:0,laneSpeed:0,steer:0,time:0,totalTime:0,score:0,correct:0,station:0,question:0,localQuestion:0,selected:null,history:[],hits:new Set(),crashes:0};
 let toastTimer=0;
 function notify(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),1800)}
 function formatTime(t){const s=Math.floor(t);return `${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`}
 function roadX(z){return 8*Math.sin(z/151)+4*Math.sin(z/69)}
 function roadSlope(z){return 8*Math.cos(z/151)/151+4*Math.cos(z/69)/69}
 function switchMode(mode){game.mode=mode;Object.keys(layers).forEach(k=>layers[k].classList.toggle('hidden',k!==mode));if(mode==='playing')canvas.focus({preventScroll:true})}
-function startGame(){Object.assign(game,{speed:0,z:0,lane:0,laneSpeed:0,steer:0,time:0,score:0,correct:0,station:0,question:0,localQuestion:0,selected:null,history:[],hits:new Set(),crashes:0});Object.keys(keys).forEach(k=>keys[k]=false);updateHUD();switchMode('playing');notify('Πάτησε ↑ ή W για να επιταχύνεις!')}
-function updateHUD(){ $('speed').textContent=Math.round(Math.abs(game.speed)*3.2);$('points').textContent=game.score;$('timer').textContent=formatTime(game.time);$('stationCount').textContent=`${game.station} / ${CHECKPOINTS.length}`;$('answeredCount').textContent=`${game.history.length} / ${questions.length}`;$('distanceText').textContent=`${Math.min(Math.floor(game.z),TRACK_LENGTH).toLocaleString('el-GR')} / ${TRACK_LENGTH.toLocaleString('el-GR')} m`;$('progress').style.width=`${Math.min(100,game.z/TRACK_LENGTH*100)}%`; $('routeText').textContent=game.station<CHECKPOINTS.length?`Επόμενη στάση σε ${Math.max(0,Math.ceil(CHECKPOINTS[game.station]-game.z))} m`:'Προς τον τερματισμό';const biome=biomeIndexForStage(game.station);$('biomeLabel').textContent=`ΖΩΝΗ ${biome+1}/${BIOMES.length} · ${BIOMES[biome].name}`}
+function startGame(){Object.assign(game,{speed:0,z:0,lane:0,laneSpeed:0,steer:0,time:0,totalTime:0,score:0,correct:0,station:0,question:0,localQuestion:0,selected:null,history:[],hits:new Set(),crashes:0});Object.keys(keys).forEach(k=>keys[k]=false);$('reviewPanel').hidden=true;$('reviewToggle').setAttribute('aria-expanded','false');$('answerHistory').replaceChildren();setReviewFilter('all',false);updateHUD();switchMode('playing');notify('Πάτησε ↑ ή W για να επιταχύνεις!')}
+function updateHUD(){ $('speed').textContent=Math.round(Math.abs(game.speed)*3.2);$('points').textContent=game.score;$('timer').textContent=formatTime(game.totalTime);$('stationCount').textContent=`${game.station} / ${CHECKPOINTS.length}`;$('answeredCount').textContent=`${game.history.length} / ${questions.length}`;$('distanceText').textContent=`${Math.min(Math.floor(game.z),TRACK_LENGTH).toLocaleString('el-GR')} / ${TRACK_LENGTH.toLocaleString('el-GR')} m`;$('progress').style.width=`${Math.min(100,game.z/TRACK_LENGTH*100)}%`; $('routeText').textContent=game.station<CHECKPOINTS.length?`Επόμενη στάση σε ${Math.max(0,Math.ceil(CHECKPOINTS[game.station]-game.z))} m`:'Προς τον τερματισμό';const biome=biomeIndexForStage(game.station);$('biomeLabel').textContent=`ΖΩΝΗ ${biome+1}/${BIOMES.length} · ${BIOMES[biome].name}`}
 function beginQuiz(){game.speed=0;game.laneSpeed=0;game.selected=null;game.localQuestion=0;updateHUD();switchMode('quiz');renderQuestion()}
 function renderQuestion(){const q=questions[game.question];if(!q){if(game.question===questions.length&&game.station===CHECKPOINTS.length)resumeRace();else throw Error('Λείπει ερώτηση από τη διαδρομή');return}game.selected=null;$('quizStation').textContent=`${game.station+1} / ${CHECKPOINTS.length}`;$('quizNumber').textContent=`Ερώτηση ${game.question+1} / ${questions.length}`;$('questionSection').textContent=q.section;$('questionProgress').style.width=`${game.question/questions.length*100}%`;$('questionTitle').textContent=q.question;$('answerPanel').classList.remove('show','bad');$('choices').replaceChildren();$('choices').classList.toggle('matching',q.type==='matching');q.options.forEach((option,i)=>{const b=document.createElement('button');b.type='button';b.className='choice';b.innerHTML=`<span class="num">${i+1}</span>`;const label=document.createElement('span');label.textContent=option;b.appendChild(label);b.addEventListener('click',()=>answerQuestion(i));$('choices').appendChild(b)})}
-function answerQuestion(i){if(game.selected!==null)return;const q=questions[game.question];game.selected=i;const right=i===q.answer;if(right){game.score+=100;game.correct++}game.history.push({q:q.question,right,correctText:q.options[q.answer]});[...$('choices').children].forEach((b,n)=>{b.disabled=true;if(n===q.answer)b.classList.add('correct');if(n===i&&!right)b.classList.add('incorrect')});$('answerHeading').textContent=right?'✓ Σωστή απάντηση · +100 βαθμοί':'Η σωστή απάντηση είναι: '+q.options[q.answer];$('answerExplain').textContent=q.explanation;$('bookRef').textContent=q.bookRef||'Σχολικό βιβλίο · Εισαγωγή';$('answerSource').href=q.sourceUrl;$('answerPanel').classList.toggle('bad',!right);$('answerPanel').classList.add('show');if(q.type==='matching')$('answerPanel').scrollIntoView({block:'nearest',behavior:'smooth'});$('nextQuestion').textContent=game.localQuestion===QUESTIONS_PER_STOP[game.station]-1?'ΣΥΝΕΧΕΙΑ ΤΟΥ ΡΑΛΙ →':'ΕΠΟΜΕΝΗ ΕΡΩΤΗΣΗ →';updateHUD()}
+function answerQuestion(i){if(game.selected!==null)return;const q=questions[game.question];game.selected=i;const right=i===q.answer;if(right){game.score+=100;game.correct++}game.history.push({questionIndex:game.question,selectedIndex:i,right});[...$('choices').children].forEach((b,n)=>{b.disabled=true;if(n===q.answer)b.classList.add('correct');if(n===i&&!right)b.classList.add('incorrect')});$('answerHeading').textContent=right?'✓ Σωστή απάντηση · +100 βαθμοί':'Η σωστή απάντηση είναι: '+q.options[q.answer];$('answerExplain').textContent=q.explanation;$('bookRef').textContent=q.bookRef||'Σχολικό βιβλίο · Εισαγωγή';$('answerSource').href=q.sourceUrl;$('answerPanel').classList.toggle('bad',!right);$('answerPanel').classList.add('show');if(q.type==='matching')$('answerPanel').scrollIntoView({block:'nearest',behavior:'smooth'});$('nextQuestion').textContent=game.localQuestion===QUESTIONS_PER_STOP[game.station]-1?'ΣΥΝΕΧΕΙΑ ΤΟΥ ΡΑΛΙ →':'ΕΠΟΜΕΝΗ ΕΡΩΤΗΣΗ →';updateHUD()}
 function advanceQuestion(){if(game.selected===null)return;game.question++;game.localQuestion++;if(game.localQuestion>=QUESTIONS_PER_STOP[game.station]){game.station++;resumeRace();if(game.station%10===0&&game.station<CHECKPOINTS.length)notify(`ΝΕΟ ΤΟΠΙΟ: ${BIOMES[biomeIndexForStage(game.station)].name}!`)}else renderQuestion()}
 function resumeRace(){switchMode('playing');updateHUD();notify('Προχώρα στην επόμενη στάση!')}
-function endGame(){if(game.question!==questions.length||game.history.length!==questions.length){game.z=Math.min(game.z,TRACK_LENGTH-1);notify(`Εκκρεμούν ${questions.length-game.question} ερωτήσεις πριν από τον τερματισμό.`);return;}game.speed=0;switchMode('finish');$('finalPoints').textContent=game.score;$('finalCorrect').textContent=`${game.correct} / ${questions.length}`;$('finalTime').textContent=formatTime(game.time);$('finishMessage').textContent=game.correct===questions.length?'Εξαιρετική επίδοση: όλες οι 170 ερωτήσεις απαντήθηκαν σωστά!':'Απάντησες σε όλες τις ερωτήσεις και ολοκλήρωσες τη διαδρομή. Μπορείς να εξετάσεις τις απαντήσεις σου και να δοκιμάσεις ξανά.';$('answerHistory').replaceChildren();for(const h of game.history){const row=document.createElement('div');const ind=document.createElement('b');ind.textContent=h.right?'✓':'✗';ind.className=h.right?'':'no';const content=document.createElement('span');content.textContent=`${h.q} — ${h.correctText}`;row.append(ind,content);$('answerHistory').append(row)}}
+function endGame(){
+ if(game.question!==questions.length||game.history.length!==questions.length){
+   game.z=Math.min(game.z,TRACK_LENGTH-1);notify(`Εκκρεμούν ${questions.length-game.question} ερωτήσεις πριν από τον τερματισμό.`);return;
+ }
+ game.speed=0;clearTimeout(toastTimer);$('toast').classList.remove('show');switchMode('finish');
+ $('finalPoints').textContent=game.score;
+ $('finalCorrect').textContent=`${game.correct} / ${questions.length}`;
+ $('finalTime').textContent=formatTime(game.totalTime);
+ $('finalDrivingTime').textContent=formatTime(game.time);
+ $('finishMessage').textContent=game.correct===questions.length?`Όλες οι ${questions.length} ερωτήσεις απαντήθηκαν σωστά!`:'Απάντησες σε όλες τις ερωτήσεις και ολοκλήρωσες τη διαδρομή.';
+ $('reviewPanel').hidden=true;$('reviewToggle').setAttribute('aria-expanded','false');
+ $('reviewToggle').textContent=`ΠΡΟΒΟΛΗ ΑΠΑΝΤΗΣΕΩΝ (${questions.length}) ↓`;
+ $('answerHistory').replaceChildren();setReviewFilter('all',false);
+}
+let reviewFilter='all';
+function setReviewFilter(filter,show=true){
+ reviewFilter=filter;
+ $('reviewAll').setAttribute('aria-pressed',String(filter==='all'));
+ $('reviewWrong').setAttribute('aria-pressed',String(filter==='wrong'));
+ if(show&&!$('reviewPanel').hidden)renderReview();
+}
+function mk(parent,tag,value,cls){
+ const el=document.createElement(tag);el.textContent=value;if(cls)el.className=cls;parent.append(el);return el;
+}
+function renderReview(){
+ const list=$('answerHistory');list.replaceChildren();
+ const records=game.history.map((record,i)=>({record,i,q:questions[record.questionIndex]})).filter(({record})=>reviewFilter==='all'||!record.right);
+ $('reviewCount').textContent=reviewFilter==='all'?`Όλες οι απαντήσεις: ${records.length}`:`Λανθασμένες: ${records.length} / ${game.history.length}`;
+ if(!records.length){mk(list,'p','Δεν υπάρχουν λανθασμένες απαντήσεις.','review-empty');return;}
+ const group=document.createDocumentFragment();
+ for(const {record,i,q} of records){
+   if(!q)continue;
+   const entry=document.createElement('article');entry.className='review-entry';
+   const head=document.createElement('div');head.className='review-head';
+   mk(head,'span',`Ερώτηση ${i+1} / ${questions.length} · ${q.author}`);
+   mk(head,'b',record.right?'Σωστή':'Λανθασμένη',record.right?'':'wrong');
+   entry.append(head);mk(entry,'p',q.question,'review-q');
+   const pair=document.createElement('div');pair.className='review-pair';
+   const student=document.createElement('div');student.className='review-answer'+(record.right?'':' wrong');
+   mk(student,'strong','ΑΠΑΝΤΗΣΗ ΜΑΘΗΤΗ');mk(student,'p',q.options[record.selectedIndex]??'Δεν καταγράφηκε απάντηση');
+   const correct=document.createElement('div');correct.className='review-answer';
+   mk(correct,'strong','ΣΩΣΤΗ ΑΠΑΝΤΗΣΗ');mk(correct,'p',q.options[q.answer]);
+   pair.append(student,correct);entry.append(pair);
+   if(q.explanation)mk(entry,'p',`Επεξήγηση: ${q.explanation}`,'review-explain');
+   group.append(entry);
+ }
+ list.append(group);list.scrollTop=0;
+}
+function toggleReview(){
+ const panel=$('reviewPanel');panel.hidden=!panel.hidden;
+ $('reviewToggle').setAttribute('aria-expanded',String(!panel.hidden));
+ $('reviewToggle').textContent=panel.hidden?`ΠΡΟΒΟΛΗ ΑΠΑΝΤΗΣΕΩΝ (${questions.length}) ↓`:'ΑΠΟΚΡΥΨΗ ΑΠΑΝΤΗΣΕΩΝ ↑';
+ if(!panel.hidden)renderReview();
+}
 function pause(){if(game.mode==='playing')switchMode('pause');else if(game.mode==='pause')switchMode('playing')}
-$('startBtn').addEventListener('click',startGame);$('restartBtn').addEventListener('click',startGame);$('resumeBtn').addEventListener('click',()=>switchMode('playing'));$('nextQuestion').addEventListener('click',advanceQuestion);
+$('startBtn').addEventListener('click',startGame);$('restartBtn').addEventListener('click',startGame);$('resumeBtn').addEventListener('click',()=>switchMode('playing'));$('nextQuestion').addEventListener('click',advanceQuestion);$('reviewToggle').addEventListener('click',toggleReview);$('reviewAll').addEventListener('click',()=>setReviewFilter('all'));$('reviewWrong').addEventListener('click',()=>setReviewFilter('wrong'));
 window.addEventListener('keydown',e=>{let k=e.key;if(k==='w'||k==='W')k='ArrowUp';else if(k==='s'||k==='S')k='ArrowDown';else if(k==='a'||k==='A')k='ArrowLeft';else if(k==='d'||k==='D')k='ArrowRight';if(k.startsWith('Arrow')||k===' '){e.preventDefault()}keys[k]=true;if(e.repeat)return;if(k==='p'||k==='P'||k==='Escape'){if(game.mode==='playing'||game.mode==='pause'){pause();e.preventDefault()}}if(game.mode==='quiz'&&['1','2','3','4','5','6','7','8'].includes(k)){answerQuestion(Number(k)-1)}});
 window.addEventListener('keyup',e=>{let k=e.key;if(k==='w'||k==='W')k='ArrowUp';else if(k==='s'||k==='S')k='ArrowDown';else if(k==='a'||k==='A')k='ArrowLeft';else if(k==='d'||k==='D')k='ArrowRight';keys[k]=false});window.addEventListener('blur',()=>{Object.keys(keys).forEach(k=>keys[k]=false);if(game.mode==='playing')switchMode('pause')});
 for(const b of document.querySelectorAll('[data-key]')){let key=b.dataset.key;const press=e=>{e.preventDefault();b.setPointerCapture?.(e.pointerId);keys[key]=true;b.classList.add('pressed')};const release=e=>{e.preventDefault();keys[key]=false;b.classList.remove('pressed')};b.addEventListener('pointerdown',press);b.addEventListener('pointerup',release);b.addEventListener('pointercancel',release);b.addEventListener('lostpointercapture',release)}
@@ -287,7 +380,7 @@ const previous=game.z;game.z+=game.speed*dt;game.time+=dt;
 for(let i=0;i<hazards.length;i++){const h=hazards[i];if(!game.hits.has(i)&&Math.abs(game.z-h.z)<2.4&&Math.abs(game.lane-h.offset)<2.15){game.hits.add(i);game.speed*=.40;game.score=Math.max(0,game.score-20);game.crashes++;notify('Χτύπησες κώνο: −20 βαθμοί')}}
 if(game.station<CHECKPOINTS.length&&previous<CHECKPOINTS[game.station]&&game.z>=CHECKPOINTS[game.station]){game.z=CHECKPOINTS[game.station];updateHUD();beginQuiz();return}
 if(game.z>=TRACK_LENGTH){game.z=TRACK_LENGTH;updateHUD();endGame();return}updateHUD()}
-let last=performance.now();function frame(now){const dt=Math.min((now-last)/1000,.045);last=now;update(dt);render();requestAnimationFrame(frame)}
+let last=performance.now();function frame(now){const rawDt=Math.min(Math.max((now-last)/1000,0),.25);const dt=Math.min(rawDt,.045);last=now;if(game.mode==='playing'||game.mode==='quiz')game.totalTime+=rawDt;update(dt);if(game.mode==='quiz')$('timer').textContent=formatTime(game.totalTime);render();requestAnimationFrame(frame)}
 updateHUD();requestAnimationFrame(frame);
 })();
 </script>

@@ -1,0 +1,51 @@
+name: Validate, deploy and release
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+concurrency:
+  group: publish-rali-gnoseon
+  cancel-in-progress: false
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate JavaScript and questions
+        run: python3 tests/validate.py
+  pages:
+    needs: validate
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/configure-pages@v5
+        with:
+          enablement: true
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+      - id: deployment
+        uses: actions/deploy-pages@v4
+  release:
+    needs: validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Prepare ZIP
+        run: zip -q Rali_Gnoseon_3D_v3_2.zip index.html questions.json 'Απαντήσεις_και_παραπομπές.txt' README.md RELEASE_NOTES_v3.2.md
+      - name: Publish v3.2 release once
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view v3.2 >/dev/null 2>&1; then
+            echo "Release v3.2 already published."
+          else
+            gh release create v3.2 Rali_Gnoseon_3D_v3_2.zip --target "$GITHUB_SHA" --title "Ράλι Γνώσεων 3D v3.2" --notes-file RELEASE_NOTES_v3.2.md --latest
+          fi
