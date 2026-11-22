@@ -161,7 +161,7 @@ button,input{font:inherit}button{cursor:pointer}button:disabled{opacity:.5;curso
 <div class="stat"><strong id="finalQuestionTime">00:00</strong><span>Χρόνος ερωτήσεων</span></div>
 <div class="stat"><strong id="finalPauseTime">00:00</strong><span>Χρόνος παύσεων</span></div></div>
 <p class="result-detail">Ο συνολικός χρόνος περιλαμβάνει την οδήγηση, τον χρόνο στις στάσεις ερωτήσεων και τις παύσεις. Οι χρόνοι σταματούν στον τερματισμό.</p>
-<button type="button" class="primary" id="reviewToggle" aria-expanded="false" aria-controls="reviewPanel">ΠΡΟΒΟΛΗ ΑΠΑΝΤΗΣΕΩΝ (<span id="initialReviewCount">170</span>) ↓</button>
+<button type="button" class="primary" id="reviewToggle" aria-expanded="false" aria-controls="reviewPanel">ΠΡΟΒΟΛΗ ΑΠΑΝΤΗΣΕΩΝ (170) ↓</button>
 <section class="review-panel" id="reviewPanel" hidden aria-label="Ανασκόπηση απαντήσεων">
 <div class="review-toolbar"><strong id="reviewCount">170 απαντήσεις</strong><div class="review-controls">
 <button type="button" class="review-filter" id="reviewAll" aria-pressed="true">Όλες</button>
@@ -209,7 +209,7 @@ function setQuestionMode(mode){
   if(!pool.length||pool.length%5!==0)throw Error('Μη έγκυρος αριθμός ερωτήσεων.');
   selectedMode=mode;questions=pool.slice();
   CHECKPOINTS=Array.from({length:pool.length/5*2},(_,i)=>FIRST_STOP+i*STOP_SPACING);
-  TRACK_LENGTH=CHECKPOINTS[CHECKPOINTS.length-1]+210;
+  TRACK_LENGTH=CHECKPOINTS[CHECKPOINTS.length-1]+(mode==='both'?210:90);
   QUESTIONS_PER_STOP=CHECKPOINTS.map((_,i)=>i%2===0?2:3);
   if(QUESTIONS_PER_STOP.reduce((sum,n)=>sum+n,0)!==questions.length)throw Error('Ασυμφωνία ερωτήσεων και στάσεων.');
   for(const button of document.querySelectorAll('[data-mode]')){
@@ -217,7 +217,7 @@ function setQuestionMode(mode){
   }
   $('introQuestionCount').textContent=pool.length;$('introQuestions').textContent=pool.length;
   $('introStations').textContent=CHECKPOINTS.length;$('introZones').textContent=zoneCount();
-  $('initialReviewCount').textContent=pool.length;
+  $('reviewToggle').textContent=`ΠΡΟΒΟΛΗ ΑΠΑΝΤΗΣΕΩΝ (${pool.length}) ↓`;
   game.z=0;game.station=0;game.question=0;game.history=[];
   rebuildFinishArch();updateHUD();
 }
@@ -272,7 +272,7 @@ function updateClockHUD(){
 function roadX(z){return 8*Math.sin(z/151)+4*Math.sin(z/69)}
 function roadSlope(z){return 8*Math.cos(z/151)/151+4*Math.cos(z/69)/69}
 function switchMode(mode){accountTime();game.mode=mode;Object.keys(layers).forEach(k=>layers[k].classList.toggle('hidden',k!==mode));updateClockHUD();if(mode==='playing')canvas.focus({preventScroll:true})}
-function startGame(){accountTime();questions=shuffledQuestions();if(selectedMode!=='both')questions=questions.filter(q=>q.author===MODE_AUTHORS[selectedMode]);if(questions.length!==questionPoolForMode(selectedMode).length)throw Error('Ασυμφωνία επιλεγμένων ερωτήσεων.');Object.assign(game,{mode:'intro',speed:0,z:0,lane:0,laneSpeed:0,steer:0,time:0,totalTime:0,elapsedTime:0,questionTime:0,pauseTime:0,score:0,correct:0,station:0,question:0,localQuestion:0,selected:null,history:[],hits:new Set(),crashes:0});Object.keys(keys).forEach(k=>keys[k]=false);$('reviewPanel').hidden=true;$('reviewToggle').setAttribute('aria-expanded','false');$('answerHistory').replaceChildren();setReviewFilter('all',false);updateHUD();switchMode('playing');notify('Πάτησε ↑ ή W για να επιταχύνεις!')}
+function startGame(){accountTime();const previousOrder=questions.map(q=>q.id);questions=shuffledQuestions();if(selectedMode!=='both')questions=questions.filter(q=>q.author===MODE_AUTHORS[selectedMode]);if(questions.length!==questionPoolForMode(selectedMode).length)throw Error('Ασυμφωνία επιλεγμένων ερωτήσεων.');if(questions.length>1&&previousOrder.length===questions.length&&questions.every((q,i)=>q.id===previousOrder[i]))[questions[0],questions[1]]=[questions[1],questions[0]];Object.assign(game,{mode:'intro',speed:0,z:0,lane:0,laneSpeed:0,steer:0,time:0,totalTime:0,elapsedTime:0,questionTime:0,pauseTime:0,score:0,correct:0,station:0,question:0,localQuestion:0,selected:null,history:[],hits:new Set(),crashes:0});Object.keys(keys).forEach(k=>keys[k]=false);$('reviewPanel').hidden=true;$('reviewToggle').setAttribute('aria-expanded','false');$('answerHistory').replaceChildren();setReviewFilter('all',false);updateHUD();switchMode('playing');notify('Πάτησε ↑ ή W για να επιταχύνεις!')}
 function updateHUD(){ $('speed').textContent=Math.round(Math.abs(game.speed)*3.2);$('points').textContent=game.score;updateClockHUD();$('stationCount').textContent=`${game.station} / ${CHECKPOINTS.length}`;$('answeredCount').textContent=`${game.history.length} / ${questions.length}`;$('distanceText').textContent=`${Math.min(Math.floor(game.z),TRACK_LENGTH).toLocaleString('el-GR')} / ${TRACK_LENGTH.toLocaleString('el-GR')} m`;$('progress').style.width=`${Math.min(100,game.z/TRACK_LENGTH*100)}%`; $('routeText').textContent=game.station<CHECKPOINTS.length?`Επόμενη στάση σε ${Math.max(0,Math.ceil(CHECKPOINTS[game.station]-game.z))} m`:'Προς τον τερματισμό';const biome=biomeIndexForStage(game.station);$('biomeLabel').textContent=`ΖΩΝΗ ${biome+1}/${zoneCount()} · ${BIOMES[biome].name}`}
 function beginQuiz(){game.speed=0;game.laneSpeed=0;game.selected=null;game.localQuestion=0;updateHUD();switchMode('quiz');renderQuestion()}
 function renderQuestion(){const q=questions[game.question];if(!q){if(game.question===questions.length&&game.station===CHECKPOINTS.length)resumeRace();else throw Error('Λείπει ερώτηση από τη διαδρομή');return}game.selected=null;$('quizStation').textContent=`${game.station+1} / ${CHECKPOINTS.length}`;$('quizNumber').textContent=`Ερώτηση ${game.question+1} / ${questions.length}`;$('questionSection').textContent=q.section;$('questionProgress').style.width=`${game.question/questions.length*100}%`;$('questionTitle').textContent=q.question;$('answerPanel').classList.remove('show','bad');$('choices').replaceChildren();$('choices').classList.toggle('matching',q.type==='matching');q.options.forEach((option,i)=>{const b=document.createElement('button');b.type='button';b.className='choice';b.innerHTML=`<span class="num">${i+1}</span>`;const label=document.createElement('span');label.textContent=option;b.appendChild(label);b.addEventListener('click',()=>answerQuestion(i));$('choices').appendChild(b)})}
