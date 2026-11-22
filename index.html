@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#10262a">
-<title>Ράλι Γνώσεων 3D v3.3 — Αρχαία Ελληνικά Α΄ Λυκείου</title>
+<title>Ράλι Γνώσεων 3D v3.4 — Αρχαία Ελληνικά Α΄ Λυκείου</title>
 <style>
 :root { --dark:#10262a; --dark2:#173438; --ink:#163038; --mint:#b3e6c7; --gold:#f6cc62; --cream:#f5f3ea; --line:#dbe4dc; --muted:#627677; --red:#b44a36; }
 *{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:system-ui,-apple-system,"Segoe UI",Arial,sans-serif;background:#eef2ed;color:var(--ink)}
@@ -85,11 +85,20 @@ button,input{font:inherit}button{cursor:pointer}button:disabled{opacity:.5;curso
 .overlay-clock{font-size:12px;color:#326a56;font-weight:750;margin:7px 0 10px;line-height:1.4}
 @media(max-width:850px){.timer-metric{min-width:137px}.timer-metric .time-breakdown span{font-size:8px}.timer-metric .time-breakdown b{font-size:9px}}
 @media(max-width:600px){.timer-metric{min-width:99px;padding:8px 6px}.metric.wide{min-width:82px;padding:8px 6px}.timer-metric .time-breakdown{flex-direction:column;gap:1px}.timer-metric .time-breakdown span{font-size:7px}.timer-metric .time-breakdown b{font-size:9px}.metrics-left{gap:3px}.topbar{gap:3px}.metric:not(.timer-metric){padding:8px 6px}}
+
+.topic-picker{padding:11px 12px;margin:8px 0 12px;background:#e8eee6;border:1px solid #d3e1d4;border-radius:12px}
+.topic-picker .car-picker-title{margin-bottom:8px}
+.topic-choices{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+.topic-choice{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;background:#fffdfa;border:1.5px solid #c8d9ce;color:#23463f;padding:10px 7px;border-radius:10px;min-height:58px;line-height:1.25}
+.topic-choice b{font-size:13px}.topic-choice span{font-size:11px;color:#647d70}
+.topic-choice:hover{border-color:#83a592}.topic-choice.selected{border-color:#226047;box-shadow:inset 0 0 0 1px #226047;background:#e5f3e8}
+.topic-choice:focus-visible{outline:3px solid #f6c958;outline-offset:2px}
+@media(max-width:600px){.topic-choices{gap:5px}.topic-choice{min-height:55px;padding:7px 3px}.topic-choice b{font-size:11px}.topic-choice span{font-size:10px}}
 </style>
 </head>
 <body>
 <div class="page">
-  <div class="masthead"><div class="brand"><div class="brandmark">R↗</div><div><strong>ΡΑΛΙ ΓΝΩΣΕΩΝ <span style="color:#36755d">3D</span></strong><small>ΑΡΧΑΙΑ ΕΛΛΗΝΙΚΑ · Α΄ ΛΥΚΕΙΟΥ</small></div></div><span class="chip">ΤΡΑΠΕΖΑ ΘΕΜΑΤΩΝ · v3.3</span></div>
+  <div class="masthead"><div class="brand"><div class="brandmark">R↗</div><div><strong>ΡΑΛΙ ΓΝΩΣΕΩΝ <span style="color:#36755d">3D</span></strong><small>ΑΡΧΑΙΑ ΕΛΛΗΝΙΚΑ · Α΄ ΛΥΚΕΙΟΥ</small></div></div><span class="chip">ΤΡΑΠΕΖΑ ΘΕΜΑΤΩΝ · v3.4</span></div>
   <main class="stage" id="stage">
     <canvas id="world" aria-label="Τρισδιάστατη πίστα ράλι" tabindex="0"></canvas>
     <div class="topbar">
@@ -108,8 +117,17 @@ button,input{font:inherit}button{cursor:pointer}button:disabled{opacity:.5;curso
       <div class="dialog intro">
         <div class="eyebrow">ΜΑΘΗΣΗ ΣΕ ΚΙΝΗΣΗ · 3D WEBGL</div>
         <h1>Οδήγησε.<br>Σκέψου.<br><span style="color:#2b8668">Τερμάτισε.</span></h1>
-        <p class="lead">Οδήγησε σε τρισδιάστατη διαδρομή ράλι και απάντησε σε <b>όλες τις 170 επιμέρους ερωτήσεις</b> από την Τράπεζα Θεμάτων (ΙΕΠ) που αφορούν την ύλη της Α΄ Λυκείου και το σχολικό εγχειρίδιο <em>Αρχαίοι Έλληνες Ιστοριογράφοι</em> (Α΄ Λυκείου) (Ομάδα συγγραφής: Κυριακή Διαλησμά, Άρης Δρουκόπουλος, Ευαγγελία Κουτρουμπέλη, Γεράσιμος Χρυσάφης). <b>Τερματισμός μόνο αφού απαντηθούν όλες.</b></p>
-        <div class="highlights"><div class="hi"><strong>68</strong><span>Στάσεις γνώσεων</span></div><div class="hi"><strong>170</strong><span>Επιμέρους ερωτήσεις</span></div><div class="hi"><strong>7</strong><span>Διαφορετικές ζώνες τοπίου</span></div></div><p class="small-note">Σε κάθε νέο αγώνα οι 170 ερωτήσεις εμφανίζονται με νέα τυχαία σειρά.</p>
+        <p class="lead">Οδήγησε σε τρισδιάστατη διαδρομή ράλι και απάντησε σε <b>όλες τις <span id="introQuestionCount">170</span> επιμέρους ερωτήσεις</b> από την Τράπεζα Θεμάτων (ΙΕΠ) που αφορούν την ύλη της Α΄ Λυκείου και το σχολικό εγχειρίδιο <em>Αρχαίοι Έλληνες Ιστοριογράφοι</em> (Α΄ Λυκείου) (Ομάδα συγγραφής: Κυριακή Διαλησμά, Άρης Δρουκόπουλος, Ευαγγελία Κουτρουμπέλη, Γεράσιμος Χρυσάφης). <b>Τερματισμός μόνο αφού απαντηθούν όλες.</b></p>
+        <div class="topic-picker" role="group" aria-label="Επιλογή ερωτήσεων">
+  <div class="car-picker-title">ΕΠΙΛΟΓΗ ΕΡΩΤΗΣΕΩΝ</div>
+  <div class="topic-choices">
+    <button type="button" class="topic-choice" data-mode="thucydides" aria-pressed="false"><b>Θουκυδίδης</b><span>95 ερωτήσεις</span></button>
+    <button type="button" class="topic-choice" data-mode="xenophon" aria-pressed="false"><b>Ξενοφώντας</b><span>75 ερωτήσεις</span></button>
+    <button type="button" class="topic-choice selected" data-mode="both" aria-pressed="true"><b>Και οι δύο</b><span>170 ερωτήσεις</span></button>
+  </div>
+</div>
+<div class="highlights"><div class="hi"><strong id="introStations">68</strong><span>Στάσεις γνώσεων</span></div><div class="hi"><strong id="introQuestions">170</strong><span>Επιμέρους ερωτήσεις</span></div><div class="hi"><strong id="introZones">7</strong><span>Διαφορετικές ζώνες τοπίου</span></div></div>
+<p class="small-note">Σε κάθε νέο αγώνα οι ερωτήσεις της επιλεγμένης ενότητας εμφανίζονται με νέα τυχαία σειρά.</p>
         <p style="margin-bottom:13px"><b>Χειρισμός:</b> ↑ ή W γκάζι, ↓ ή S φρένο, ← / → ή A / D τιμόνι. P παύση. Στις στροφές, μείνε εντός του δρόμου και απόφυγε τους κώνους.</p>
         <div class="car-picker"><div class="car-picker-title">ΕΠΙΛΟΓΗ ΧΡΩΜΑΤΟΣ ΑΥΤΟΚΙΝΗΤΟΥ <span id="carSelectionName">Κίτρινο</span></div>
           <div class="car-swatches" role="group" aria-label="Επιλογή χρώματος αυτοκινήτου">
@@ -124,7 +142,7 @@ button,input{font:inherit}button{cursor:pointer}button:disabled{opacity:.5;curso
       </div>
     </section>
     <section class="layer hidden" id="quizLayer" aria-label="Στάση γνώσεων" aria-live="polite">
-      <div class="dialog"><div class="quiz-head"><span class="eyebrow">ΣΤΑΣΗ ΓΝΩΣΕΩΝ <span id="quizStation">1 / 68</span></span><b id="quizNumber">Ερώτηση 1 / 12</b></div>
+      <div class="dialog"><div class="quiz-head"><span class="eyebrow">ΣΤΑΣΗ ΓΝΩΣΕΩΝ <span id="quizStation">1 / 68</span></span><b id="quizNumber">Ερώτηση 1 / 170</b></div>
         <div class="question-label" id="questionSection"></div><div class="overlay-clock" id="questionClock">Χρόνος ερωτήσεων: 00:00 · Συνολικός: 00:00</div><h2 id="questionTitle"></h2><div class="progress-questions"><div id="questionProgress"></div></div>
         <div class="choices" id="choices"></div>
         <div class="answer-panel" id="answerPanel"><b id="answerHeading"></b><p id="answerExplain"></p><div id="bookRef" class="answersource"></div><a id="answerSource" target="_blank" rel="noopener noreferrer">Δείτε την Εισαγωγή στο σχολικό βιβλίο ↗</a><button id="nextQuestion" class="primary">ΣΥΝΕΧΕΙΑ →</button></div>
@@ -143,14 +161,14 @@ button,input{font:inherit}button{cursor:pointer}button:disabled{opacity:.5;curso
 <div class="stat"><strong id="finalQuestionTime">00:00</strong><span>Χρόνος ερωτήσεων</span></div>
 <div class="stat"><strong id="finalPauseTime">00:00</strong><span>Χρόνος παύσεων</span></div></div>
 <p class="result-detail">Ο συνολικός χρόνος περιλαμβάνει την οδήγηση, τον χρόνο στις στάσεις ερωτήσεων και τις παύσεις. Οι χρόνοι σταματούν στον τερματισμό.</p>
-<button type="button" class="primary" id="reviewToggle" aria-expanded="false" aria-controls="reviewPanel">ΠΡΟΒΟΛΗ ΑΠΑΝΤΗΣΕΩΝ (170) ↓</button>
+<button type="button" class="primary" id="reviewToggle" aria-expanded="false" aria-controls="reviewPanel">ΠΡΟΒΟΛΗ ΑΠΑΝΤΗΣΕΩΝ (<span id="initialReviewCount">170</span>) ↓</button>
 <section class="review-panel" id="reviewPanel" hidden aria-label="Ανασκόπηση απαντήσεων">
 <div class="review-toolbar"><strong id="reviewCount">170 απαντήσεις</strong><div class="review-controls">
 <button type="button" class="review-filter" id="reviewAll" aria-pressed="true">Όλες</button>
 <button type="button" class="review-filter" id="reviewWrong" aria-pressed="false">Μόνο λανθασμένες</button></div></div>
 <div id="answerHistory" class="review-list" tabindex="0"></div></section>
 <button class="primary" id="restartBtn">ΝΕΟΣ ΑΓΩΝΑΣ →</button>
-<p class="small-note">Ο τερματισμός επιτρέπεται μόνο όταν έχουν απαντηθεί και τα 170 ερωτήματα. Δεν αποστέλλονται προσωπικά δεδομένα σε διακομιστή.</p>
+<p class="small-note">Ο τερματισμός επιτρέπεται μόνο όταν έχουν απαντηθεί όλες οι ερωτήσεις της επιλεγμένης ενότητας. Δεν αποστέλλονται προσωπικά δεδομένα σε διακομιστή.</p><button type="button" class="secondary" id="changeModeBtn" style="width:100%;margin-top:9px">ΑΛΛΑΓΗ ΕΝΟΤΗΤΑΣ</button>
 </div></section>
   </main>
   <div class="footer"><a href="https://ebooks.edu.gr/ebooks/v/html/8547/2662/Archaioi-Ellines-Istoriografoi_A-Lykeiou_html-empl/indexab.html" rel="noopener noreferrer" target="_blank">Επίσημο σχολικό βιβλίο ↗</a><span id="renderModeNote" aria-live="polite"></span></div>
@@ -169,15 +187,40 @@ function shuffledQuestions(){
     const j=Math.floor(Math.random()*(i+1));
     [result[i],result[j]]=[result[j],result[i]];
   }
-  if(result.length>1&&result.every((q,i)=>q.id===questions[i].id)){
+  if(result.length>1&&result.length===questions.length&&result.every((q,i)=>q.id===questions[i].id)){
     [result[0],result[1]]=[result[1],result[0]];
   }
   return result;
 }
 const ROAD_HALF=9.2, FIRST_STOP=150, STOP_SPACING=120;
-const CHECKPOINTS=Array.from({length:68},(_,i)=>FIRST_STOP+i*STOP_SPACING);
-const TRACK_LENGTH=CHECKPOINTS[CHECKPOINTS.length-1]+210;
-const QUESTIONS_PER_STOP=CHECKPOINTS.map((_,i)=>i%2===0?2:3);
+const FULL_CHECKPOINTS=Array.from({length:68},(_,i)=>FIRST_STOP+i*STOP_SPACING);
+let CHECKPOINTS=FULL_CHECKPOINTS.slice();
+let TRACK_LENGTH=CHECKPOINTS[CHECKPOINTS.length-1]+210;
+let QUESTIONS_PER_STOP=CHECKPOINTS.map((_,i)=>i%2===0?2:3);
+let selectedMode='both';
+const MODE_AUTHORS={thucydides:'Θουκυδίδης',xenophon:'Ξενοφώντας'};
+function questionPoolForMode(mode){
+  return originalQuestions.filter(q=>mode==='both'||q.author===MODE_AUTHORS[mode]);
+}
+function zoneCount(){return Math.max(1,Math.ceil(CHECKPOINTS.length/10));}
+function setQuestionMode(mode){
+  if(game.mode!=='intro'||!['both','thucydides','xenophon'].includes(mode))return;
+  const pool=questionPoolForMode(mode);
+  if(!pool.length||pool.length%5!==0)throw Error('Μη έγκυρος αριθμός ερωτήσεων.');
+  selectedMode=mode;questions=pool.slice();
+  CHECKPOINTS=Array.from({length:pool.length/5*2},(_,i)=>FIRST_STOP+i*STOP_SPACING);
+  TRACK_LENGTH=CHECKPOINTS[CHECKPOINTS.length-1]+210;
+  QUESTIONS_PER_STOP=CHECKPOINTS.map((_,i)=>i%2===0?2:3);
+  if(QUESTIONS_PER_STOP.reduce((sum,n)=>sum+n,0)!==questions.length)throw Error('Ασυμφωνία ερωτήσεων και στάσεων.');
+  for(const button of document.querySelectorAll('[data-mode]')){
+    const selected=button.dataset.mode===mode;button.classList.toggle('selected',selected);button.setAttribute('aria-pressed',String(selected));
+  }
+  $('introQuestionCount').textContent=pool.length;$('introQuestions').textContent=pool.length;
+  $('introStations').textContent=CHECKPOINTS.length;$('introZones').textContent=zoneCount();
+  $('initialReviewCount').textContent=pool.length;
+  game.z=0;game.station=0;game.question=0;game.history=[];
+  rebuildFinishArch();updateHUD();
+}
 // 34 pairs of (2, 3) questions = exactly 170, preserving the original sequence.
 if(QUESTIONS_PER_STOP.reduce((a,b)=>a+b,0)!==questions.length)throw Error('Η κατανομή των στάσεων δεν αντιστοιχεί στις 170 ερωτήσεις.');
 const BIOMES=[
@@ -197,8 +240,8 @@ const CAR_PAINTS={
  purple:{name:'Μωβ',hex:'#a274d5',base:[.57,.34,.77],roof:[.67,.48,.86]}
 };
 let selectedCar='gold';
-function biomeIndexForZ(z){let index=0;for(let b=1;b<BIOMES.length;b++)if(z>=CHECKPOINTS[b*10-1])index=b;return index;}
-function biomeIndexForStage(s){return Math.min(BIOMES.length-1,Math.floor(s/10));}
+function biomeIndexForZ(z){let index=0;for(let b=1;b<zoneCount();b++)if(z>=CHECKPOINTS[b*10-1])index=b;return index;}
+function biomeIndexForStage(s){return Math.min(zoneCount()-1,Math.floor(s/10));}
 
 const keys={};
 const game={mode:'intro',speed:0,z:0,lane:0,laneSpeed:0,steer:0,time:0,totalTime:0,elapsedTime:0,questionTime:0,pauseTime:0,score:0,correct:0,station:0,question:0,localQuestion:0,selected:null,history:[],hits:new Set(),crashes:0};
@@ -229,8 +272,8 @@ function updateClockHUD(){
 function roadX(z){return 8*Math.sin(z/151)+4*Math.sin(z/69)}
 function roadSlope(z){return 8*Math.cos(z/151)/151+4*Math.cos(z/69)/69}
 function switchMode(mode){accountTime();game.mode=mode;Object.keys(layers).forEach(k=>layers[k].classList.toggle('hidden',k!==mode));updateClockHUD();if(mode==='playing')canvas.focus({preventScroll:true})}
-function startGame(){accountTime();questions=shuffledQuestions();Object.assign(game,{mode:'intro',speed:0,z:0,lane:0,laneSpeed:0,steer:0,time:0,totalTime:0,elapsedTime:0,questionTime:0,pauseTime:0,score:0,correct:0,station:0,question:0,localQuestion:0,selected:null,history:[],hits:new Set(),crashes:0});Object.keys(keys).forEach(k=>keys[k]=false);$('reviewPanel').hidden=true;$('reviewToggle').setAttribute('aria-expanded','false');$('answerHistory').replaceChildren();setReviewFilter('all',false);updateHUD();switchMode('playing');notify('Πάτησε ↑ ή W για να επιταχύνεις!')}
-function updateHUD(){ $('speed').textContent=Math.round(Math.abs(game.speed)*3.2);$('points').textContent=game.score;updateClockHUD();$('stationCount').textContent=`${game.station} / ${CHECKPOINTS.length}`;$('answeredCount').textContent=`${game.history.length} / ${questions.length}`;$('distanceText').textContent=`${Math.min(Math.floor(game.z),TRACK_LENGTH).toLocaleString('el-GR')} / ${TRACK_LENGTH.toLocaleString('el-GR')} m`;$('progress').style.width=`${Math.min(100,game.z/TRACK_LENGTH*100)}%`; $('routeText').textContent=game.station<CHECKPOINTS.length?`Επόμενη στάση σε ${Math.max(0,Math.ceil(CHECKPOINTS[game.station]-game.z))} m`:'Προς τον τερματισμό';const biome=biomeIndexForStage(game.station);$('biomeLabel').textContent=`ΖΩΝΗ ${biome+1}/${BIOMES.length} · ${BIOMES[biome].name}`}
+function startGame(){accountTime();questions=shuffledQuestions();if(selectedMode!=='both')questions=questions.filter(q=>q.author===MODE_AUTHORS[selectedMode]);if(questions.length!==questionPoolForMode(selectedMode).length)throw Error('Ασυμφωνία επιλεγμένων ερωτήσεων.');Object.assign(game,{mode:'intro',speed:0,z:0,lane:0,laneSpeed:0,steer:0,time:0,totalTime:0,elapsedTime:0,questionTime:0,pauseTime:0,score:0,correct:0,station:0,question:0,localQuestion:0,selected:null,history:[],hits:new Set(),crashes:0});Object.keys(keys).forEach(k=>keys[k]=false);$('reviewPanel').hidden=true;$('reviewToggle').setAttribute('aria-expanded','false');$('answerHistory').replaceChildren();setReviewFilter('all',false);updateHUD();switchMode('playing');notify('Πάτησε ↑ ή W για να επιταχύνεις!')}
+function updateHUD(){ $('speed').textContent=Math.round(Math.abs(game.speed)*3.2);$('points').textContent=game.score;updateClockHUD();$('stationCount').textContent=`${game.station} / ${CHECKPOINTS.length}`;$('answeredCount').textContent=`${game.history.length} / ${questions.length}`;$('distanceText').textContent=`${Math.min(Math.floor(game.z),TRACK_LENGTH).toLocaleString('el-GR')} / ${TRACK_LENGTH.toLocaleString('el-GR')} m`;$('progress').style.width=`${Math.min(100,game.z/TRACK_LENGTH*100)}%`; $('routeText').textContent=game.station<CHECKPOINTS.length?`Επόμενη στάση σε ${Math.max(0,Math.ceil(CHECKPOINTS[game.station]-game.z))} m`:'Προς τον τερματισμό';const biome=biomeIndexForStage(game.station);$('biomeLabel').textContent=`ΖΩΝΗ ${biome+1}/${zoneCount()} · ${BIOMES[biome].name}`}
 function beginQuiz(){game.speed=0;game.laneSpeed=0;game.selected=null;game.localQuestion=0;updateHUD();switchMode('quiz');renderQuestion()}
 function renderQuestion(){const q=questions[game.question];if(!q){if(game.question===questions.length&&game.station===CHECKPOINTS.length)resumeRace();else throw Error('Λείπει ερώτηση από τη διαδρομή');return}game.selected=null;$('quizStation').textContent=`${game.station+1} / ${CHECKPOINTS.length}`;$('quizNumber').textContent=`Ερώτηση ${game.question+1} / ${questions.length}`;$('questionSection').textContent=q.section;$('questionProgress').style.width=`${game.question/questions.length*100}%`;$('questionTitle').textContent=q.question;$('answerPanel').classList.remove('show','bad');$('choices').replaceChildren();$('choices').classList.toggle('matching',q.type==='matching');q.options.forEach((option,i)=>{const b=document.createElement('button');b.type='button';b.className='choice';b.innerHTML=`<span class="num">${i+1}</span>`;const label=document.createElement('span');label.textContent=option;b.appendChild(label);b.addEventListener('click',()=>answerQuestion(i));$('choices').appendChild(b)})}
 function answerQuestion(i){if(game.selected!==null)return;const q=questions[game.question];game.selected=i;const right=i===q.answer;if(right){game.score+=100;game.correct++}game.history.push({questionIndex:game.question,selectedIndex:i,right});[...$('choices').children].forEach((b,n)=>{b.disabled=true;if(n===q.answer)b.classList.add('correct');if(n===i&&!right)b.classList.add('incorrect')});$('answerHeading').textContent=right?'✓ Σωστή απάντηση · +100 βαθμοί':'Η σωστή απάντηση είναι: '+q.options[q.answer];$('answerExplain').textContent=q.explanation;$('bookRef').textContent=q.bookRef||'Σχολικό βιβλίο · Εισαγωγή';$('answerSource').href=q.sourceUrl;$('answerPanel').classList.toggle('bad',!right);$('answerPanel').classList.add('show');if(q.type==='matching')$('answerPanel').scrollIntoView({block:'nearest',behavior:'smooth'});$('nextQuestion').textContent=game.localQuestion===QUESTIONS_PER_STOP[game.station]-1?'ΣΥΝΕΧΕΙΑ ΤΟΥ ΡΑΛΙ →':'ΕΠΟΜΕΝΗ ΕΡΩΤΗΣΗ →';updateHUD()}
@@ -384,11 +427,28 @@ function rebuildCarMesh(){
   carMesh.compile();
 }
 terrain.compile();rebuildCarMesh();
+let customFinishArch=null;
+function rebuildFinishArch(){
+  if(customFinishArch?.buf&&gl.deleteBuffer)gl.deleteBuffer(customFinishArch.buf);
+  customFinishArch=null;
+  if(CHECKPOINTS.length===FULL_CHECKPOINTS.length)return;
+  const mesh=new Mesh(),x=roadX(TRACK_LENGTH),z=TRACK_LENGTH;
+  mesh.box(x-10,4.5,z,1.6,9,2,[.1,.22,.24]);mesh.box(x+10,4.5,z,1.6,9,2,[.1,.22,.24]);
+  mesh.box(x,9.5,z,21.3,1.8,2,[.96,.76,.28]);
+  for(let i=0;i<8;i++)mesh.box(x-8.75+i*2.5,9.6,z+1.1,2.5,1.0,.12,i%2===0?[.13,.22,.22]:[.95,.91,.73]);
+  mesh.compile();customFinishArch=mesh;
+}
 function setCarPaint(id){if(!CAR_PAINTS[id])return;selectedCar=id;rebuildCarMesh();
   $('carSelectionName').textContent=CAR_PAINTS[id].name;
   for(const button of document.querySelectorAll('[data-car]')){const active=button.dataset.car===id;button.classList.toggle('selected',active);button.setAttribute('aria-pressed',String(active));}
 }
 document.querySelectorAll('[data-car]').forEach(b=>b.addEventListener('click',()=>setCarPaint(b.dataset.car)));
+document.querySelectorAll('[data-mode]').forEach(b=>b.addEventListener('click',()=>setQuestionMode(b.dataset.mode)));
+$('changeModeBtn').addEventListener('click',()=>{
+ switchMode('intro');
+ game.z=0;game.station=0;game.question=0;game.history=[];game.speed=0;
+ setQuestionMode(selectedMode);canvas.blur();
+});
 function perspective(fov,aspect,near,far){const f=1/Math.tan(fov/2),out=new Float32Array(16);out[0]=f/aspect;out[5]=f;out[10]=(far+near)/(near-far);out[11]=-1;out[14]=2*far*near/(near-far);return out}
 function lookAt(eye,target){const z=norm(sub(eye,target)),x=norm(cross([0,1,0],z)),y=cross(z,x);return new Float32Array([x[0],y[0],z[0],0, x[1],y[1],z[1],0, x[2],y[2],z[2],0, -dot(x,eye),-dot(y,eye),-dot(z,eye),1])}
 function multiply(a,b){const c=new Float32Array(16);for(let i=0;i<4;i++)for(let j=0;j<4;j++)for(let k=0;k<4;k++)c[i*4+j]+=a[k*4+j]*b[i*4+k];return c}
@@ -412,12 +472,13 @@ function renderFallback(){
   const objects=[];for(let z=Math.floor((game.z+225)/11)*11;z>game.z-17;z-=11){for(const side of [-1,1]){const x=roadX(z)+side*(20+((Math.floor(z*17+side*29)%39+39)%39));objects.push({z,x,type:'tree'})}}
   for(let i=0;i<CHECKPOINTS.length;i++)if(CHECKPOINTS[i]>game.z-15&&CHECKPOINTS[i]<game.z+270)objects.push({z:CHECKPOINTS[i],x:roadX(CHECKPOINTS[i]),type:'arch',i});
   for(const hzd of hazards)if(hzd.z>game.z-14&&hzd.z<game.z+200)objects.push({z:hzd.z,x:roadX(hzd.z)+hzd.offset,type:'cone'});
+  if(TRACK_LENGTH>game.z-15&&TRACK_LENGTH<game.z+270)objects.push({z:TRACK_LENGTH,x:roadX(TRACK_LENGTH),type:'finish'});
   objects.sort((a,b)=>b.z-a.z);
-  for(const o of objects){const [x,y,s]=pr(o.x,o.z);if(o.type==='tree'){const bz=biomeIndexForZ(o.z),decor=BIOMES[bz];if(bz===4||(bz===3&&Math.floor(o.z)%3===0)){polygon([[x-3.1*s,y+1.2*s],[x-1.6*s,y-2.8*s],[x+1.0*s,y-3.6*s],[x+3.4*s,y+1.2*s]],toCSS(decor.rock));}else{const size=4.2*s;polygon([[x-2*s,y],[x,y-size],[x+2*s,y]],toCSS(decor.foliage));polygon([[x-2.5*s,y+1*s],[x,y-size*.7],[x+2.5*s,y+s]],toCSS(bz===5?[.86,.92,.95]:decor.foliage));ctx.fillStyle=toCSS(decor.rock);ctx.fillRect(x-.3*s,y+s,.6*s,1.5*s)}}else if(o.type==='cone'){polygon([[x-.8*s,y],[x,y-1.9*s],[x+.8*s,y]],'#e57727');ctx.fillStyle='#ece8cd';ctx.fillRect(x-.5*s,y-1*s,1*s,.3*s)}else if(o.type==='arch'){const wArch=10.2*s;ctx.strokeStyle='#205448';ctx.lineWidth=Math.max(2,1.5*s);ctx.beginPath();ctx.moveTo(x-wArch,y);ctx.lineTo(x-wArch,y-8*s);ctx.lineTo(x+wArch,y-8*s);ctx.lineTo(x+wArch,y);ctx.stroke();polygon([[x-wArch,y-8*s],[x+wArch,y-8*s],[x+wArch,y-6.6*s],[x-wArch,y-6.6*s]],toCSS(BIOMES[biomeIndexForZ(o.z)].arch))}}
+  for(const o of objects){const [x,y,s]=pr(o.x,o.z);if(o.type==='tree'){const bz=biomeIndexForZ(o.z),decor=BIOMES[bz];if(bz===4||(bz===3&&Math.floor(o.z)%3===0)){polygon([[x-3.1*s,y+1.2*s],[x-1.6*s,y-2.8*s],[x+1.0*s,y-3.6*s],[x+3.4*s,y+1.2*s]],toCSS(decor.rock));}else{const size=4.2*s;polygon([[x-2*s,y],[x,y-size],[x+2*s,y]],toCSS(decor.foliage));polygon([[x-2.5*s,y+1*s],[x,y-size*.7],[x+2.5*s,y+s]],toCSS(bz===5?[.86,.92,.95]:decor.foliage));ctx.fillStyle=toCSS(decor.rock);ctx.fillRect(x-.3*s,y+s,.6*s,1.5*s)}}else if(o.type==='cone'){polygon([[x-.8*s,y],[x,y-1.9*s],[x+.8*s,y]],'#e57727');ctx.fillStyle='#ece8cd';ctx.fillRect(x-.5*s,y-1*s,1*s,.3*s)}else if(o.type==='arch'||o.type==='finish'){const wArch=10.2*s;ctx.strokeStyle='#205448';ctx.lineWidth=Math.max(2,1.5*s);ctx.beginPath();ctx.moveTo(x-wArch,y);ctx.lineTo(x-wArch,y-8*s);ctx.lineTo(x+wArch,y-8*s);ctx.lineTo(x+wArch,y);ctx.stroke();polygon([[x-wArch,y-8*s],[x+wArch,y-8*s],[x+wArch,y-6.6*s],[x-wArch,y-6.6*s]],o.type==='finish'?'#f5cf62':toCSS(BIOMES[biomeIndexForZ(o.z)].arch))}}
   const cx=w*.50,cy=h*.76,sc=Math.min(2,w/1100)*Math.max(.70,h/760);ctx.save();ctx.translate(cx,cy);ctx.rotate(game.steer*.045);ctx.fillStyle='#122e31';ctx.fillRect(-47*sc,-17*sc,21*sc,75*sc);ctx.fillRect(26*sc,-17*sc,21*sc,75*sc);polygon([[-44*sc,57*sc],[-44*sc,-55*sc],[-28*sc,-78*sc],[28*sc,-78*sc],[44*sc,-55*sc],[44*sc,57*sc]],CAR_PAINTS[selectedCar].hex);polygon([[-32*sc,-22*sc],[-25*sc,-49*sc],[25*sc,-49*sc],[32*sc,-22*sc]],'#2c7280');polygon([[-33*sc,12*sc],[33*sc,12*sc],[25*sc,29*sc],[-25*sc,29*sc]],'#2b7181');ctx.fillStyle='#223a3c';ctx.fillRect(-56*sc,53*sc,112*sc,11*sc);ctx.restore();
   ctx.fillStyle='#ffffffbb';ctx.font=`${Math.max(11,Math.round(h*.020))}px system-ui`;ctx.textAlign='center';ctx.fillText('ΑΠΕΙΚΟΝΙΣΗ ΣΥΜΒΑΤΟΤΗΤΑΣ · ΧΩΡΙΣ WEBGL',w*.5,h-18);
 }
-function render(){resize();if(fallbackCtx){renderFallback();return}const road=roadX(game.z),x=road+game.lane,dr=roadSlope(game.z),yaw=Math.atan(dr)+game.steer*.09+game.laneSpeed*.012;const eye=[x-2.2,8.3,game.z-19.4],look=[roadX(game.z+32)*.70+x*.30,1.35,game.z+22];const vp=multiply(perspective(Math.PI/3.17,width/height,.15,550),lookAt(eye,look));const zone=BIOMES[biomeIndexForZ(game.z)];gl.clearColor(...zone.sky,1);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);gl.enable(gl.DEPTH_TEST);gl.disable(gl.CULL_FACE);gl.useProgram(program);gl.uniformMatrix4fv(vpLoc,false,vp);gl.uniform3f(eyeLoc,...eye);gl.uniform3f(fogLoc,...zone.sky);renderMesh(terrain,ID);renderMesh(carMesh,carModel(x,game.z,yaw))}
+function render(){resize();if(fallbackCtx){renderFallback();return}const road=roadX(game.z),x=road+game.lane,dr=roadSlope(game.z),yaw=Math.atan(dr)+game.steer*.09+game.laneSpeed*.012;const eye=[x-2.2,8.3,game.z-19.4],look=[roadX(game.z+32)*.70+x*.30,1.35,game.z+22];const vp=multiply(perspective(Math.PI/3.17,width/height,.15,550),lookAt(eye,look));const zone=BIOMES[biomeIndexForZ(game.z)];gl.clearColor(...zone.sky,1);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);gl.enable(gl.DEPTH_TEST);gl.disable(gl.CULL_FACE);gl.useProgram(program);gl.uniformMatrix4fv(vpLoc,false,vp);gl.uniform3f(eyeLoc,...eye);gl.uniform3f(fogLoc,...zone.sky);renderMesh(terrain,ID);if(customFinishArch)renderMesh(customFinishArch,ID);renderMesh(carMesh,carModel(x,game.z,yaw))}
 function update(dt){if(game.mode!=='playing')return;const up=!!keys.ArrowUp,down=!!keys.ArrowDown,left=!!keys.ArrowLeft,right=!!keys.ArrowRight;const targetSteer=(right?1:0)-(left?1:0);game.steer+=(targetSteer-game.steer)*Math.min(1,dt*7);
 const off=Math.abs(game.lane)>ROAD_HALF-1.45;let acceleration=up?25:(down?-36:(-4.2-game.speed*.060));if(up&&down)acceleration=-36;if(off&&game.speed>15)acceleration-=23;game.speed=Math.max(0,Math.min(51,game.speed+acceleration*dt));
 // Steering is meaningful: lateral velocity has inertia and can move the car beyond the road edge.
