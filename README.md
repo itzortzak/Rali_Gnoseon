@@ -33,4 +33,4 @@
 
 ## Δημοσίευση
 
-Το workflow [publish.yml](.github/workflows/publish.yml) ελέγχει την εφαρμογή και επιχειρεί ανάπτυξη στο GitHub Pages και δημιουργία Release `v3.4` από επιτυχημένο push στο `main`. Σε περίπτωση που το Pages δεν είναι ενεργό, επίλεξε **Settings → Pages → Source → GitHub Actions**. Βλ. [οδηγίες](DEPLOYMENT.md) και [release notes](RELEASE_NOTES_v3.4.md).
+Το workflow [publish.yml](.github/workflows/publish.yml) ελέγχει την εφαρμογή, δημοσιεύει στο GitHub Pages και δημιουργεί GitHub Release μόνο για **νέο** αριθμό έκδοσης. Ο αριθμός διαβάζεται από το αρχείο `VERSION` και οι σημειώσεις από το αντίστοιχο `RELEASE_NOTES_v<έκδοση>.md`. Για την επόμενη έκδοση ενημέρωσε το `VERSION`, τις σημειώσεις έκδοσης και την ένδειξη έκδοσης στο παιχνίδι. Αν υπάρχει ήδη το Release, το workflow δεν το αντικαθιστά. Σε περίπτωση που το Pages δεν είναι ενεργό, επίλεξε **Settings → Pages → Source → GitHub Actions**. Βλ. [οδηγίες](DEPLOYMENT.md) και [release notes](RELEASE_NOTES_v3.4.md).
