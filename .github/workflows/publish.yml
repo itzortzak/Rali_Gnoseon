@@ -47,5 +47,5 @@ jobs:
           if gh release view v3.4 >/dev/null 2>&1; then
             echo "Release v3.4 already published."
           else
-            gh release create v3.4 Rali_Gnoseon_3D_v3_3.zip --target "$GITHUB_SHA" --title "Ράλι Γνώσεων 3D v3.4" --notes-file RELEASE_NOTES_v3.3.md --latest
+            gh release create v3.4 Rali_Gnoseon_3D_v3_4.zip --target "$GITHUB_SHA" --title "Ράλι Γνώσεων 3D v3.4" --notes-file RELEASE_NOTES_v3.4.md --latest
           fi
