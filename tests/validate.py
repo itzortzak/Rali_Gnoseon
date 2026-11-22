@@ -29,12 +29,12 @@ with tempfile.TemporaryDirectory() as d:
     code+="if(one.length!==170||two.length!==170||new Set(one.map(x=>x.id)).size!==170||new Set(two.map(x=>x.id)).size!==170||one.every((q,i)=>q.id===two[i].id))process.exit(1);\n"
     subprocess.run(['node','-e',code],check=True)
 # Verify every selectable corpus without losing or inventing a question.
-pure_func=re.search(r'function questionPoolForMode\\(mode\\)\\{.*?\\n\\}',scripts[-1],re.S)
+pure_func=re.search(r'function questionPoolForMode\(mode\)\{.*?\n\}',scripts[-1],re.S)
 assert pure_func, "Question pool selector not found"
-mode_code='const originalQuestions='+json.dumps([{'id':q['id'],'author':q['author']} for q in bank],ensure_ascii=False)+';\\n'
-mode_code+="const MODE_AUTHORS={thucydides:'Θουκυδίδης',xenophon:'Ξενοφώντας'};\\n"
-mode_code+=pure_func.group(0)+"\\n"
-mode_code+="const expected={thucydides:[95,38,4680],xenophon:[75,30,3720],both:[170,68,8400]};\\n"
+mode_code='const originalQuestions='+json.dumps([{'id':q['id'],'author':q['author']} for q in bank],ensure_ascii=False)+';\n'
+mode_code+="const MODE_AUTHORS={thucydides:'Θουκυδίδης',xenophon:'Ξενοφώντας'};\n"
+mode_code+=pure_func.group(0)+"\n"
+mode_code+="const expected={thucydides:[95,38,4680],xenophon:[75,30,3720],both:[170,68,8400]};\n"
 mode_code+="""
 for(const [mode,[count,stops,distance]] of Object.entries(expected)){
  const pool=questionPoolForMode(mode);
