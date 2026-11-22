@@ -17,6 +17,19 @@ jobs:
       - uses: actions/checkout@v4
       - name: Validate JavaScript and questions
         run: python3 tests/validate.py
+      - name: Validate version metadata
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          version = Path("VERSION").read_text(encoding="utf-8").strip()
+          assert re.fullmatch(r"[0-9]+\.[0-9]+(?:\.[0-9]+)?", version), "Invalid VERSION"
+          notes = Path(f"RELEASE_NOTES_v{version}.md")
+          assert notes.is_file(), f"Missing release notes: {notes}"
+          assert notes.stat().st_size > 0, f"Empty release notes: {notes}"
+          print(f"Release metadata valid for v{version}")
+          PY
   pages:
     needs: validate
     runs-on: ubuntu-latest
@@ -38,14 +51,30 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Prepare ZIP
-        run: zip -q Rali_Gnoseon_3D_v3_4.zip index.html questions.json 'Απαντήσεις_και_παραπομπές.txt' README.md RELEASE_NOTES_v3.4.md
-      - name: Publish v3.4 release once
+      - name: Package the version declared in VERSION
+        id: package
+        shell: bash
+        run: |
+          set -euo pipefail
+          version="$(tr -d '\r\n' < VERSION)"
+          notes="RELEASE_NOTES_v${version}.md"
+          archive="Rali_Gnoseon_3D_v${version//./_}.zip"
+          test -s "$notes"
+          zip -q "$archive" index.html questions.json 'Απαντήσεις_και_παραπομπές.txt' README.md VERSION "$notes"
+          echo "tag=v${version}" >> "$GITHUB_OUTPUT"
+          echo "archive=$archive" >> "$GITHUB_OUTPUT"
+          echo "notes=$notes" >> "$GITHUB_OUTPUT"
+      - name: Publish release only for a new version
+        shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ steps.package.outputs.tag }}
+          RELEASE_ARCHIVE: ${{ steps.package.outputs.archive }}
+          RELEASE_NOTES: ${{ steps.package.outputs.notes }}
         run: |
-          if gh release view v3.4 >/dev/null 2>&1; then
-            echo "Release v3.4 already published."
+          set -euo pipefail
+          if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            echo "::notice::Release $RELEASE_TAG already exists; bump VERSION and create matching release notes for a new release."
           else
-            gh release create v3.4 Rali_Gnoseon_3D_v3_4.zip --target "$GITHUB_SHA" --title "Ράλι Γνώσεων 3D v3.4" --notes-file RELEASE_NOTES_v3.4.md --latest
+            gh release create "$RELEASE_TAG" "$RELEASE_ARCHIVE" --target "$GITHUB_SHA" --title "Ράλι Γνώσεων 3D $RELEASE_TAG" --notes-file "$RELEASE_NOTES" --latest
           fi
