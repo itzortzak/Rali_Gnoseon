@@ -286,7 +286,8 @@ const TURN_EVENTS=[
 const CLIMB_STARTS=[3750,9450,14950,20800];
 const smooth01=t=>{t=Math.max(0,Math.min(1,t));return t*t*(3-2*t);};
 function roadAngle(s){
- let heading=.57*Math.sin(s/174)+.19*Math.sin(s/70);
+ // Keep short connecting bends, but avoid self-intersections between adjacent switchback lanes.
+ let heading=.145*Math.sin(s/174)+.09*Math.sin(s/70);
  for(const turn of TURN_EVENTS)heading+=Math.PI*turn.sign*smooth01((s-turn.center+117)/234);
  return heading;
 }
