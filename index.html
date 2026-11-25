@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#10262a">
-<title>Ράλι Γνώσεων 3D v3.5 — Αρχαία Ελληνικά Α΄ Λυκείου</title>
+<title>Ράλι Γνώσεων 3D v3.6 — Αρχαία Ελληνικά Α΄ Λυκείου</title>
 <style>
 :root { --dark:#10262a; --dark2:#173438; --ink:#163038; --mint:#b3e6c7; --gold:#f6cc62; --cream:#f5f3ea; --line:#dbe4dc; --muted:#627677; --red:#b44a36; }
 *{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:system-ui,-apple-system,"Segoe UI",Arial,sans-serif;background:#eef2ed;color:var(--ink)}
@@ -102,7 +102,7 @@ button,input{font:inherit}button{cursor:pointer}button:disabled{opacity:.5;curso
 </head>
 <body>
 <div class="page">
-  <div class="masthead"><div class="brand"><div class="brandmark">R↗</div><div><strong>ΡΑΛΙ ΓΝΩΣΕΩΝ <span style="color:#36755d">3D</span></strong><small>ΑΡΧΑΙΑ ΕΛΛΗΝΙΚΑ · Α΄ ΛΥΚΕΙΟΥ</small></div></div><span class="chip">ΤΡΑΠΕΖΑ ΘΕΜΑΤΩΝ · v3.5</span></div>
+  <div class="masthead"><div class="brand"><div class="brandmark">R↗</div><div><strong>ΡΑΛΙ ΓΝΩΣΕΩΝ <span style="color:#36755d">3D</span></strong><small>ΑΡΧΑΙΑ ΕΛΛΗΝΙΚΑ · Α΄ ΛΥΚΕΙΟΥ</small></div></div><span class="chip">ΤΡΑΠΕΖΑ ΘΕΜΑΤΩΝ · v3.6</span></div>
   <main class="stage" id="stage">
     <canvas id="world" aria-label="Τρισδιάστατη πίστα ράλι" tabindex="0"></canvas>
     <div class="topbar">
@@ -443,23 +443,44 @@ const ID=new Float32Array([1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1]);
 const terrain=new Mesh();let carMesh=new Mesh();
 // A true 3D landscape: elevated road, banked grassy verges and valley floor.
 // Larger sampling step keeps the long route efficient on classroom PCs.
+// Visibility fix: a single valley floor always sits BELOW the lowest road level.
+// Previously overlapping 310-m-wide terrain strips followed the local road elevation,
+// which made their upper parts hide lower neighbouring road sections at hairpins.
 const FULL_TRACK_END=FULL_CHECKPOINTS[FULL_CHECKPOINTS.length-1]+320;
-const ROAD_STEP=15,edge=[.91,.85,.67],middle=[.96,.84,.55];
+const GROUND_Y=-62,ROAD_STEP=10,edge=[.91,.85,.67],middle=[.96,.84,.55];
 let seed=731995;
 function rand(){seed=(1664525*seed+1013904223)>>>0;return seed/4294967296;}
 function strip(mesh,s1,s2,l,r,height,col){
  mesh.quad(trackPoint(s1,l,height),trackPoint(s1,r,height),
            trackPoint(s2,r,height),trackPoint(s2,l,height),col);
 }
+// One continuous base plane avoids coplanar overlaps and height-dependent occlusion.
+let minGroundX=Infinity,maxGroundX=-Infinity,minGroundZ=Infinity,maxGroundZ=-Infinity;
+for(const point of PATH_POSITIONS){
+ minGroundX=Math.min(minGroundX,point.x);maxGroundX=Math.max(maxGroundX,point.x);
+ minGroundZ=Math.min(minGroundZ,point.z);maxGroundZ=Math.max(maxGroundZ,point.z);
+}
+const groundMargin=700;
+terrain.quad(
+ [minGroundX-groundMargin,GROUND_Y,minGroundZ-groundMargin],
+ [maxGroundX+groundMargin,GROUND_Y,minGroundZ-groundMargin],
+ [maxGroundX+groundMargin,GROUND_Y,maxGroundZ+groundMargin],
+ [minGroundX-groundMargin,GROUND_Y,maxGroundZ+groundMargin],BIOMES[0].ground
+);
+const BANK_OUTER=ROAD_HALF+23;
+function groundPoint(distance,lateral){
+ const p=trackPoint(distance,lateral,0);
+ return [p[0],GROUND_Y+2,p[2]];
+}
 for(let s=-75;s<FULL_TRACK_END+120;s+=ROAD_STEP){
  const next=Math.min(s+ROAD_STEP,FULL_TRACK_END+120);
  const biome=BIOMES[biomeIndexForZ(Math.max(0,(s+next)/2))];
- // Valley floor below the road, then sloped verges attach to the elevated tarmac.
- strip(terrain,s,next,-155,155,-21,biome.ground);
- terrain.quad(trackPoint(s,-64,-12),trackPoint(s,-ROAD_HALF-2,-.20),
-              trackPoint(next,-ROAD_HALF-2,-.20),trackPoint(next,-64,-12),biome.hill);
- terrain.quad(trackPoint(s,ROAD_HALF+2,-.20),trackPoint(s,64,-12),
-              trackPoint(next,64,-12),trackPoint(next,ROAD_HALF+2,-.20),biome.hill);
+ // Narrow side slopes terminate far below the road, so they do not mask
+ // adjacent winding sections at different heights.
+ terrain.quad(groundPoint(s,-BANK_OUTER),trackPoint(s,-ROAD_HALF-2,-.20),
+              trackPoint(next,-ROAD_HALF-2,-.20),groundPoint(next,-BANK_OUTER),biome.hill);
+ terrain.quad(trackPoint(s,ROAD_HALF+2,-.20),groundPoint(s,BANK_OUTER),
+              groundPoint(next,BANK_OUTER),trackPoint(next,ROAD_HALF+2,-.20),biome.hill);
  strip(terrain,s,next,-ROAD_HALF-2,ROAD_HALF+2,-.13,biome.shoulder);
  strip(terrain,s,next,-ROAD_HALF,ROAD_HALF,-.07,biome.road);
  strip(terrain,s,next,-ROAD_HALF+.36,-ROAD_HALF+.58,-.026,edge);
@@ -701,10 +722,11 @@ function render(){
  resize();
  if(fallbackCtx){renderFallback();return;}
  const s=game.z,angle=roadAngle(s),pos=trackPoint(s,game.lane);
- const eye=[pos[0]-Math.sin(angle)*24-Math.cos(angle)*1.7,pos[1]+9.4,
-            pos[2]-Math.cos(angle)*24+Math.sin(angle)*1.7];
- const forward=trackPoint(Math.min(s+34,FULL_TRACK_END+80),0,1.75);
- const vp=multiply(perspective(Math.PI/3.12,width/height,.15,700),lookAt(eye,forward));
+ const eye=[pos[0]-Math.sin(angle)*21-Math.cos(angle)*1.25,pos[1]+10.2,
+            pos[2]-Math.cos(angle)*21+Math.sin(angle)*1.25];
+ // Follow the next short section instead of aiming across the inside of a hairpin.
+ const forward=trackPoint(Math.min(s+20,FULL_TRACK_END+80),game.lane*.22,1.65);
+ const vp=multiply(perspective(Math.PI/2.70,width/height,.15,820),lookAt(eye,forward));
  const zone=BIOMES[biomeIndexForZ(s)],yaw=angle+game.steer*.10+game.laneSpeed*.009;
  gl.clearColor(...zone.sky,1);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
  gl.enable(gl.DEPTH_TEST);gl.disable(gl.CULL_FACE);gl.useProgram(program);
