@@ -637,18 +637,28 @@ function renderFallback(){
  const sky=ctx.createLinearGradient(0,0,0,h*.78);
  sky.addColorStop(0,rgb(biome.sky));sky.addColorStop(.72,rgb(biome.hill));sky.addColorStop(1,rgb(biome.ground));
  ctx.fillStyle=sky;ctx.fillRect(0,0,w,h);
- const current=trackPoint(game.z,game.lane),angle=roadAngle(game.z),co=Math.cos(angle),si=Math.sin(angle);
+ // Match the WebGL chase camera: use geometric depth instead of route distance.
+ const current=trackPoint(game.z,game.lane),angle=roadAngle(game.z);
+ const eye=[current[0]-Math.sin(angle)*21-Math.cos(angle)*1.25,current[1]+10.2,
+            current[2]-Math.cos(angle)*21+Math.sin(angle)*1.25];
+ const target=trackPoint(Math.min(game.z+20,FULL_TRACK_END+80),game.lane*.22,1.65);
+ const cameraForward=norm(sub(target,eye));
+ const cameraRight=norm(cross(cameraForward,[0,1,0]));
+ const cameraUp=cross(cameraRight,cameraForward);
+ const focal=h*.5/Math.tan((Math.PI/2.70)*.5);
  ctx.fillStyle=rgb(biome.hill);ctx.beginPath();ctx.moveTo(0,h*.5);
  for(let x=0;x<=w;x+=18)ctx.lineTo(x,h*(.44+.029*Math.sin(x*.012)+.024*Math.cos(x*.035)));
  ctx.lineTo(w,h);ctx.lineTo(0,h);ctx.fill();
  ctx.fillStyle=rgb(biome.ground);ctx.fillRect(0,h*.52,w,h*.48);
  function pr(distance,offset=0,height=0){
-   const p=trackPoint(distance,offset,height),dx=p[0]-current[0],dz=p[2]-current[2];
-   const lateral=dx*co-dz*si,depth=distance-game.z+24;
-   const scale=h*.95/Math.max(6,depth);
-   return [w*.5+lateral*scale,h*.32+(8-(p[1]-current[1]))*scale*.78,scale];
+   const p=trackPoint(distance,offset,height),rel=sub(p,eye);
+   const depth=dot(rel,cameraForward);
+   if(depth<1.5)return null; // Behind the camera, especially after a U-turn.
+   const scale=focal/depth;
+   return [w*.5+dot(rel,cameraRight)*scale,h*.5-dot(rel,cameraUp)*scale,scale,depth];
  }
  function polygon(points,color){
+   if(points.some(p=>!p||!Number.isFinite(p[0])||!Number.isFinite(p[1])))return;
    ctx.fillStyle=color;ctx.beginPath();ctx.moveTo(points[0][0],points[0][1]);
    for(let i=1;i<points.length;i++)ctx.lineTo(points[i][0],points[i][1]);
    ctx.closePath();ctx.fill();
@@ -677,9 +687,10 @@ function renderFallback(){
  for(const hzd of hazards)if(hzd.z>game.z-14&&hzd.z<game.z+250)
    items.push({s:hzd.z,offset:hzd.offset,type:hzd.type});
  if(TRACK_LENGTH>game.z-15&&TRACK_LENGTH<game.z+270)items.push({s:TRACK_LENGTH,offset:0,type:'finish'});
- items.sort((a,b)=>b.s-a.s);
+ items.sort((a,b)=>(pr(b.s,b.offset)?.[3]??-Infinity)-(pr(a.s,a.offset)?.[3]??-Infinity));
  for(const o of items){
-   const [x,y,scale]=pr(o.s,o.offset),sc=Math.max(0,scale);
+   const projected=pr(o.s,o.offset);if(!projected)continue;
+   const [x,y,scale]=projected,sc=Math.max(0,scale);
    if(o.type==='tree'){
      const b=BIOMES[biomeIndexForZ(o.s)],tall=3.5*sc;
      if(b===BIOMES[4]||b===BIOMES[3]){
