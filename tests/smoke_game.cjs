@@ -11,7 +11,8 @@ assert(script.includes('updateHUD();requestAnimationFrame(frame);'));
 script=script.replace('updateHUD();requestAnimationFrame(frame);',`
  globalThis.__test={game,questions:()=>questions,checkpoints:()=>CHECKPOINTS,
   setQuestionMode,startGame,beginQuiz,answerQuestion,advanceQuestion,endGame,
-  trackLength:()=>TRACK_LENGTH,roadAngle,roadGrade,roadZ,render};
+  trackLength:()=>TRACK_LENGTH,roadAngle,roadGrade,roadZ,roadElevation,render,
+  sceneryRoots,scenerySurfaceHeight,GROUND_Y,hazards,TURN_EVENTS,difficultyAt};
  updateHUD();requestAnimationFrame(frame);`);
 function createElement(){
  const obj={children:[],textContent:'',innerHTML:'',style:{},dataset:{},hidden:false,disabled:false};
@@ -74,13 +75,36 @@ for(const [mode,config] of Object.entries(expected)){
  assert.equal(api.game.correct,right);
  api.endGame();
  assert.equal(api.game.mode,'finish');
- // The fallback renderer must also work at a real switchback.
- for(const sample of [0,1800,2000,2250,2890,6600,7510,11180,12200,16340,17260,20520,21440,config.distance-50]){
+ // The fallback renderer must work throughout the easy opening and all switchbacks.
+ for(const sample of [0,200,900,1700,2800,3350,4250,7600,8500,11800,12700,16340,17260,20850,21750,config.distance-50]){
   if(sample>=config.distance)continue;
   api.game.z=sample;api.render();
  }
  console.log(mode+': '+config.questions+' questions / '+config.stops+' checkpoints / '+config.distance+' m / '+right+' correct');
 }
+// The trees, bushes, stones and peaks must be placed on the actual terrain.
+assert(api.sceneryRoots.length>350,'Missing roadside scenery');
+const types=new Set(api.sceneryRoots.map(obj=>obj.type));
+assert(types.has('tree')&&types.has('rock')&&types.has('mountain')&&types.has('bush'),'Scenery varieties missing');
+for(const obj of api.sceneryRoots){
+ const surface=obj.type==='mountain'?api.GROUND_Y:api.scenerySurfaceHeight(obj.distance,obj.lane);
+ assert(Number.isFinite(obj.height));
+ assert(Math.abs(obj.height-surface)<1e-6,'Floating scenery: '+JSON.stringify(obj));
+}
+assert(api.TURN_EVENTS.length===10&&api.TURN_EVENTS[0].center>3000);
+for(let s=0;s<=1000;s+=25){
+ assert(Math.abs(api.roadAngle(s))<.13,'Opening bend too sharp');
+ assert(Math.abs(api.roadGrade(s))<.026,'Opening grade too steep');
+}
+assert(api.difficultyAt(0)===0);
+assert(api.difficultyAt(5000)<api.difficultyAt(9000));
+const firstHazards=api.hazards.filter(obj=>obj.z<2400);
+assert(firstHazards.length>0&&firstHazards.every(obj=>obj.type==='cone'),'Beginner obstacles should be sparse cones');
+const lateHazards=api.hazards.filter(obj=>obj.z>=17000&&obj.z<21000);
+const mediumHazards=api.hazards.filter(obj=>obj.z>=4000&&obj.z<8000);
+assert(lateHazards.length>mediumHazards.length,'Obstacle density should grow');
+assert(new Set(lateHazards.map(obj=>obj.type)).size>=3,'Late rally must contain several obstacles');
+console.log('Terrain verified:',api.sceneryRoots.length,'grounded objects,',api.hazards.length,'obstacles. Early:',firstHazards.length,'Intermediate:',mediumHazards.length,'Late:',lateHazards.length);
 // A new run in the same mode must reshuffle its questions.
 api.game.mode='intro';api.setQuestionMode('both');api.startGame();
 const current=api.questions().map(q=>q.id);
