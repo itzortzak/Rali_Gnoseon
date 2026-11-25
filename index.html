@@ -94,6 +94,10 @@ button,input{font:inherit}button{cursor:pointer}button:disabled{opacity:.5;curso
 .topic-choice:hover{border-color:#83a592}.topic-choice.selected{border-color:#226047;box-shadow:inset 0 0 0 1px #226047;background:#e5f3e8}
 .topic-choice:focus-visible{outline:3px solid #f6c958;outline-offset:2px}
 @media(max-width:600px){.topic-choices{gap:5px}.topic-choice{min-height:55px;padding:7px 3px}.topic-choice b{font-size:11px}.topic-choice span{font-size:10px}}
+
+.road-alert{position:absolute;right:17px;top:96px;z-index:3;padding:10px 14px;border-radius:11px;border:1px solid #fee6a3;background:#173132e8;color:#ffe298;font-size:12px;font-weight:850;letter-spacing:.25px;max-width:230px;line-height:1.45;pointer-events:none}
+.road-alert[hidden]{display:none}
+@media(max-width:600px){.road-alert{right:9px;top:116px;font-size:10px;max-width:152px;padding:7px 9px}}
 </style>
 </head>
 <body>
@@ -109,8 +113,8 @@ button,input{font:inherit}button{cursor:pointer}button:disabled{opacity:.5;curso
       </div>
       <div class="metric wide"><span>ΣΤΑΣΕΙΣ · ΑΠΑΝΤΗΣΕΙΣ</span><strong id="stationCount">0 / 68</strong><em id="answeredCount">0 / 170</em></div>
     </div>
-    <div class="toast" id="toast" role="status"></div>
-    <div class="routebar"><div class="routebar-title"><span id="routeText">Θουκυδίδης & Ξενοφώντας</span><b id="distanceText">0 / 8.400 m</b></div><div class="track"><div id="progress"></div></div><div class="zone-indicator" id="biomeLabel">ΖΩΝΗ 1/7 · Πράσινοι λόφοι</div></div>
+    <div class="toast" id="toast" role="status"></div><div class="road-alert" id="roadAlert" aria-live="off" hidden></div>
+    <div class="routebar"><div class="routebar-title"><span id="routeText">Θουκυδίδης & Ξενοφώντας</span><b id="distanceText">0 / 24.680 m</b></div><div class="track"><div id="progress"></div></div><div class="zone-indicator" id="biomeLabel">ΖΩΝΗ 1/7 · Πράσινοι λόφοι</div></div>
     <div class="helpbar">↑ Επιτάχυνση · ↓ Φρένο · ← → Τιμόνι · P Παύση</div>
     <div class="controls" id="touchControls" aria-label="Χειριστήρια αφής"><div class="pad"><button class="ctrl" data-key="ArrowLeft" aria-label="Αριστερά">←</button><button class="ctrl" data-key="ArrowRight" aria-label="Δεξιά">→</button></div><div class="pedals"><button class="ctrl" data-key="ArrowDown" aria-label="Φρένο">ΦΡΕΝΟ</button><button class="ctrl gas" data-key="ArrowUp" aria-label="Γκάζι">ΓΚΑΖΙ</button></div></div>
     <section class="layer" id="introLayer" aria-label="Έναρξη παιχνιδιού">
@@ -128,7 +132,7 @@ button,input{font:inherit}button{cursor:pointer}button:disabled{opacity:.5;curso
 </div>
 <div class="highlights"><div class="hi"><strong id="introStations">68</strong><span>Στάσεις γνώσεων</span></div><div class="hi"><strong id="introQuestions">170</strong><span>Επιμέρους ερωτήσεις</span></div><div class="hi"><strong id="introZones">7</strong><span>Διαφορετικές ζώνες τοπίου</span></div></div>
 <p class="small-note">Σε κάθε νέο αγώνα οι ερωτήσεις της επιλεγμένης ενότητας εμφανίζονται με νέα τυχαία σειρά.</p>
-        <p style="margin-bottom:13px"><b>Χειρισμός:</b> ↑ ή W γκάζι, ↓ ή S φρένο, ← / → ή A / D τιμόνι. P παύση. Στις στροφές, μείνε εντός του δρόμου και απόφυγε τους κώνους.</p>
+        <p style="margin-bottom:13px"><b>Χειρισμός:</b> ↑ ή W γκάζι, ↓ ή S φρένο, ← / → ή A / D τιμόνι. P παύση. Η νέα ορεινή διαδρομή έχει αναστροφές, ανηφόρες, κατηφόρες και εμπόδια. Μείωσε ταχύτητα στις κλειστές στροφές και απόφυγε κώνους, βαρέλια, βράχους και οδοφράγματα.</p>
         <div class="car-picker"><div class="car-picker-title">ΕΠΙΛΟΓΗ ΧΡΩΜΑΤΟΣ ΑΥΤΟΚΙΝΗΤΟΥ <span id="carSelectionName">Κίτρινο</span></div>
           <div class="car-swatches" role="group" aria-label="Επιλογή χρώματος αυτοκινήτου">
             <button type="button" class="car-swatch selected" data-car="gold" style="--paint:#f2ba39" aria-pressed="true" aria-label="Κίτρινο"><span class="paint-dot"></span>Κίτρινο</button>
@@ -332,7 +336,17 @@ function roadBox(mesh,s,offset,height,w,h,d,col){
 // ROUTE_GEOMETRY_END
 function switchMode(mode){accountTime();game.mode=mode;Object.keys(layers).forEach(k=>layers[k].classList.toggle('hidden',k!==mode));updateClockHUD();if(mode==='playing')canvas.focus({preventScroll:true})}
 function startGame(){accountTime();const previousOrder=questions.map(q=>q.id);questions=shuffledQuestions();if(selectedMode!=='both')questions=questions.filter(q=>q.author===MODE_AUTHORS[selectedMode]);if(questions.length!==questionPoolForMode(selectedMode).length)throw Error('Ασυμφωνία επιλεγμένων ερωτήσεων.');if(questions.length>1&&previousOrder.length===questions.length&&questions.every((q,i)=>q.id===previousOrder[i]))[questions[0],questions[1]]=[questions[1],questions[0]];Object.assign(game,{mode:'intro',speed:0,z:0,lane:0,laneSpeed:0,steer:0,time:0,totalTime:0,elapsedTime:0,questionTime:0,pauseTime:0,score:0,correct:0,station:0,question:0,localQuestion:0,selected:null,history:[],hits:new Set(),crashes:0});Object.keys(keys).forEach(k=>keys[k]=false);$('reviewPanel').hidden=true;$('reviewToggle').setAttribute('aria-expanded','false');$('answerHistory').replaceChildren();setReviewFilter('all',false);updateHUD();switchMode('playing');notify('Πάτησε ↑ ή W για να επιταχύνεις!')}
-function updateHUD(){ $('speed').textContent=Math.round(Math.abs(game.speed)*3.2);$('points').textContent=game.score;updateClockHUD();$('stationCount').textContent=`${game.station} / ${CHECKPOINTS.length}`;$('answeredCount').textContent=`${game.history.length} / ${questions.length}`;$('distanceText').textContent=`${Math.min(Math.floor(game.z),TRACK_LENGTH).toLocaleString('el-GR')} / ${TRACK_LENGTH.toLocaleString('el-GR')} m`;$('progress').style.width=`${Math.min(100,game.z/TRACK_LENGTH*100)}%`; $('routeText').textContent=game.station<CHECKPOINTS.length?`Επόμενη στάση σε ${Math.max(0,Math.ceil(CHECKPOINTS[game.station]-game.z))} m`:'Προς τον τερματισμό';const biome=biomeIndexForStage(game.station);$('biomeLabel').textContent=`ΖΩΝΗ ${biome+1}/${zoneCount()} · ${BIOMES[biome].name}`}
+function updateHUD(){ $('speed').textContent=Math.round(Math.abs(game.speed)*3.2);$('points').textContent=game.score;updateClockHUD();$('stationCount').textContent=`${game.station} / ${CHECKPOINTS.length}`;$('answeredCount').textContent=`${game.history.length} / ${questions.length}`;$('distanceText').textContent=`${Math.min(Math.floor(game.z),TRACK_LENGTH).toLocaleString('el-GR')} / ${TRACK_LENGTH.toLocaleString('el-GR')} m`;$('progress').style.width=`${Math.min(100,game.z/TRACK_LENGTH*100)}%`; $('routeText').textContent=game.station<CHECKPOINTS.length?`Επόμενη στάση σε ${Math.max(0,Math.ceil(CHECKPOINTS[game.station]-game.z))} m`:'Προς τον τερματισμό';const biome=biomeIndexForStage(game.station);$('biomeLabel').textContent=`ΖΩΝΗ ${biome+1}/${zoneCount()} · ${BIOMES[biome].name}`;updateRoadAlert()}
+function updateRoadAlert(){
+ const s=game.z,alert=$('roadAlert');
+ if(game.mode!=='playing'){alert.hidden=true;return;}
+ const turn=TURN_EVENTS.find(t=>t.center+130>=s&&t.center-s<330);
+ const grade=roadGrade(s);
+ if(turn){alert.textContent=`⚠ ΑΝΑΣΤΡΟΦΗ 180° ${turn.sign>0?'ΔΕΞΙΑ':'ΑΡΙΣΤΕΡΑ'} · ${Math.max(0,Math.round(turn.center-s))} m — ΜΕΙΩΣΕ ΤΑΧΥΤΗΤΑ`;alert.hidden=false;}
+ else if(grade>.043){alert.textContent=`↗ ΑΝΗΦΟΡΑ ${Math.round(grade*100)}%`;alert.hidden=false;}
+ else if(grade<-.043){alert.textContent=`↘ ΚΑΤΗΦΟΡΑ ${Math.round(-grade*100)}% · ΠΡΟΣΟΧΗ`;alert.hidden=false;}
+ else {alert.hidden=true;}
+}
 function beginQuiz(){game.speed=0;game.laneSpeed=0;game.selected=null;game.localQuestion=0;updateHUD();switchMode('quiz');renderQuestion()}
 function renderQuestion(){const q=questions[game.question];if(!q){if(game.question===questions.length&&game.station===CHECKPOINTS.length)resumeRace();else throw Error('Λείπει ερώτηση από τη διαδρομή');return}game.selected=null;$('quizStation').textContent=`${game.station+1} / ${CHECKPOINTS.length}`;$('quizNumber').textContent=`Ερώτηση ${game.question+1} / ${questions.length}`;$('questionSection').textContent=q.section;$('questionProgress').style.width=`${game.question/questions.length*100}%`;$('questionTitle').textContent=q.question;$('answerPanel').classList.remove('show','bad');$('choices').replaceChildren();$('choices').classList.toggle('matching',q.type==='matching');q.options.forEach((option,i)=>{const b=document.createElement('button');b.type='button';b.className='choice';b.innerHTML=`<span class="num">${i+1}</span>`;const label=document.createElement('span');label.textContent=option;b.appendChild(label);b.addEventListener('click',()=>answerQuestion(i));$('choices').appendChild(b)})}
 function answerQuestion(i){if(game.selected!==null)return;const q=questions[game.question];game.selected=i;const right=i===q.answer;if(right){game.score+=100;game.correct++}game.history.push({questionIndex:game.question,selectedIndex:i,right});[...$('choices').children].forEach((b,n)=>{b.disabled=true;if(n===q.answer)b.classList.add('correct');if(n===i&&!right)b.classList.add('incorrect')});$('answerHeading').textContent=right?'✓ Σωστή απάντηση · +100 βαθμοί':'Η σωστή απάντηση είναι: '+q.options[q.answer];$('answerExplain').textContent=q.explanation;$('bookRef').textContent=q.bookRef||'Σχολικό βιβλίο · Εισαγωγή';$('answerSource').href=q.sourceUrl;$('answerPanel').classList.toggle('bad',!right);$('answerPanel').classList.add('show');if(q.type==='matching')$('answerPanel').scrollIntoView({block:'nearest',behavior:'smooth'});$('nextQuestion').textContent=game.localQuestion===QUESTIONS_PER_STOP[game.station]-1?'ΣΥΝΕΧΕΙΑ ΤΟΥ ΡΑΛΙ →':'ΕΠΟΜΕΝΗ ΕΡΩΤΗΣΗ →';updateHUD()}
@@ -699,14 +713,46 @@ function render(){
  if(customFinishArch)renderMesh(customFinishArch,ID);
  renderMesh(carMesh,carModel(s,game.lane,yaw));
 }
-function update(dt){if(game.mode!=='playing')return;const up=!!keys.ArrowUp,down=!!keys.ArrowDown,left=!!keys.ArrowLeft,right=!!keys.ArrowRight;const targetSteer=(right?1:0)-(left?1:0);game.steer+=(targetSteer-game.steer)*Math.min(1,dt*7);
-const off=Math.abs(game.lane)>ROAD_HALF-1.45;let acceleration=up?25:(down?-36:(-4.2-game.speed*.060));if(up&&down)acceleration=-36;if(off&&game.speed>15)acceleration-=23;game.speed=Math.max(0,Math.min(51,game.speed+acceleration*dt));
-// Steering is meaningful: lateral velocity has inertia and can move the car beyond the road edge.
-const desiredSide=game.steer*game.speed*.44;game.laneSpeed+=(desiredSide-game.laneSpeed)*Math.min(1,dt*3.9);game.lane+=game.laneSpeed*dt;const maxLane=ROAD_HALF+1.9;if(game.lane>maxLane||game.lane<-maxLane){game.lane=Math.max(-maxLane,Math.min(maxLane,game.lane));game.speed*=.70;game.laneSpeed=0;game.score=Math.max(0,game.score-5);notify('Εκτός δρόμου: μείωση ταχύτητας!')}
-const previous=game.z;game.z+=game.speed*dt;
-for(let i=0;i<hazards.length;i++){const h=hazards[i];if(!game.hits.has(i)&&Math.abs(game.z-h.z)<2.4&&Math.abs(game.lane-h.offset)<2.15){game.hits.add(i);game.speed*=.40;game.score=Math.max(0,game.score-20);game.crashes++;notify('Χτύπησες κώνο: −20 βαθμοί')}}
-if(game.station<CHECKPOINTS.length&&previous<CHECKPOINTS[game.station]&&game.z>=CHECKPOINTS[game.station]){game.z=CHECKPOINTS[game.station];updateHUD();beginQuiz();return}
-if(game.z>=TRACK_LENGTH){game.z=TRACK_LENGTH;updateHUD();endGame();return}updateHUD()}
+function update(dt){
+ if(game.mode!=='playing')return;
+ const up=!!keys.ArrowUp,down=!!keys.ArrowDown,left=!!keys.ArrowLeft,right=!!keys.ArrowRight;
+ const targetSteer=(right?1:0)-(left?1:0);
+ game.steer+=(targetSteer-game.steer)*Math.min(1,dt*7.2);
+ const grade=roadGrade(game.z),curvature=roadCurvature(game.z);
+ const off=Math.abs(game.lane)>ROAD_HALF-1.25;
+ let acceleration=up?25:down?-38:-4.7-game.speed*.060;
+ if(up&&down)acceleration=-38;
+ // More throttle is required climbing hills, gravity helps on descents.
+ acceleration-=grade*56;
+ if(off&&game.speed>14)acceleration-=24;
+ game.speed=Math.max(0,Math.min(54,game.speed+acceleration*dt));
+ const outward=-curvature*game.speed*game.speed*.28;
+ const desiredSide=game.steer*game.speed*.46+outward;
+ game.laneSpeed+=(desiredSide-game.laneSpeed)*Math.min(1,dt*3.5);
+ game.lane+=game.laneSpeed*dt;
+ const limit=ROAD_HALF+1.3;
+ if(Math.abs(game.lane)>limit){
+   game.lane=Math.max(-limit,Math.min(limit,game.lane));
+   game.speed*=.72;game.laneSpeed=0;
+   game.score=Math.max(0,game.score-8);
+   notify('Εκτός δρόμου: μείωσε ταχύτητα στις στροφές!');
+ }
+ const previous=game.z;
+ game.z+=game.speed*dt;
+ for(let i=0;i<hazards.length;i++){
+   const h=hazards[i];
+   if(!game.hits.has(i)&&previous<h.z+2.6&&game.z>=h.z-2.6&&Math.abs(game.lane-h.offset)<h.radius+1){
+     game.hits.add(i);game.speed*=h.type==='barrier'?.29:.48;
+     game.score=Math.max(0,game.score-(h.type==='barrier'?35:20));game.crashes++;
+     notify(h.type==='barrier'?'Πρόσκρουση σε οδόφραγμα: −35 βαθμοί':'Πρόσκρουση σε εμπόδιο: −20 βαθμοί');
+   }
+ }
+ if(game.station<CHECKPOINTS.length&&previous<CHECKPOINTS[game.station]&&game.z>=CHECKPOINTS[game.station]){
+   game.z=CHECKPOINTS[game.station];updateHUD();beginQuiz();return;
+ }
+ if(game.z>=TRACK_LENGTH){game.z=TRACK_LENGTH;updateHUD();endGame();return;}
+ updateHUD();
+}
 let last=performance.now();function frame(now){const dt=Math.min(Math.max((now-last)/1000,0),.045);last=now;accountTime(now);update(dt);if(game.mode==='quiz'||game.mode==='pause')updateClockHUD();render();requestAnimationFrame(frame)}
 updateHUD();requestAnimationFrame(frame);
 })();
