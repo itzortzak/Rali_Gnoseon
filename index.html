@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#10262a">
-<title>Ράλι Γνώσεων 3D v3.6 — Αρχαία Ελληνικά Α΄ Λυκείου</title>
+<title>Ράλι Γνώσεων 3D v3.7 — Αρχαία Ελληνικά Α΄ Λυκείου</title>
 <style>
 :root { --dark:#10262a; --dark2:#173438; --ink:#163038; --mint:#b3e6c7; --gold:#f6cc62; --cream:#f5f3ea; --line:#dbe4dc; --muted:#627677; --red:#b44a36; }
 *{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:system-ui,-apple-system,"Segoe UI",Arial,sans-serif;background:#eef2ed;color:var(--ink)}
@@ -102,7 +102,7 @@ button,input{font:inherit}button{cursor:pointer}button:disabled{opacity:.5;curso
 </head>
 <body>
 <div class="page">
-  <div class="masthead"><div class="brand"><div class="brandmark">R↗</div><div><strong>ΡΑΛΙ ΓΝΩΣΕΩΝ <span style="color:#36755d">3D</span></strong><small>ΑΡΧΑΙΑ ΕΛΛΗΝΙΚΑ · Α΄ ΛΥΚΕΙΟΥ</small></div></div><span class="chip">ΤΡΑΠΕΖΑ ΘΕΜΑΤΩΝ · v3.6</span></div>
+  <div class="masthead"><div class="brand"><div class="brandmark">R↗</div><div><strong>ΡΑΛΙ ΓΝΩΣΕΩΝ <span style="color:#36755d">3D</span></strong><small>ΑΡΧΑΙΑ ΕΛΛΗΝΙΚΑ · Α΄ ΛΥΚΕΙΟΥ</small></div></div><span class="chip">ΤΡΑΠΕΖΑ ΘΕΜΑΤΩΝ · v3.7</span></div>
   <main class="stage" id="stage">
     <canvas id="world" aria-label="Τρισδιάστατη πίστα ράλι" tabindex="0"></canvas>
     <div class="topbar">
@@ -132,7 +132,7 @@ button,input{font:inherit}button{cursor:pointer}button:disabled{opacity:.5;curso
 </div>
 <div class="highlights"><div class="hi"><strong id="introStations">68</strong><span>Στάσεις γνώσεων</span></div><div class="hi"><strong id="introQuestions">170</strong><span>Επιμέρους ερωτήσεις</span></div><div class="hi"><strong id="introZones">7</strong><span>Διαφορετικές ζώνες τοπίου</span></div></div>
 <p class="small-note">Σε κάθε νέο αγώνα οι ερωτήσεις της επιλεγμένης ενότητας εμφανίζονται με νέα τυχαία σειρά.</p>
-        <p style="margin-bottom:13px"><b>Χειρισμός:</b> ↑ ή W γκάζι, ↓ ή S φρένο, ← / → ή A / D τιμόνι. P παύση. Η νέα ορεινή διαδρομή έχει αναστροφές, ανηφόρες, κατηφόρες και εμπόδια. Μείωσε ταχύτητα στις κλειστές στροφές και απόφυγε κώνους, βαρέλια, βράχους και οδοφράγματα.</p>
+        <p style="margin-bottom:13px"><b>Χειρισμός:</b> ↑ ή W γκάζι, ↓ ή S φρένο, ← / → ή A / D τιμόνι. P παύση. Η διαδρομή αρχίζει ομαλά, με ήπιες στροφές και λίγα εμπόδια. Σταδιακά ακολουθούν δυσκολότερες στροφές, φουρκέτες, ανηφόρες και κατηφόρες.</p>
         <div class="car-picker"><div class="car-picker-title">ΕΠΙΛΟΓΗ ΧΡΩΜΑΤΟΣ ΑΥΤΟΚΙΝΗΤΟΥ <span id="carSelectionName">Κίτρινο</span></div>
           <div class="car-swatches" role="group" aria-label="Επιλογή χρώματος αυτοκινήτου">
             <button type="button" class="car-swatch selected" data-car="gold" style="--paint:#f2ba39" aria-pressed="true" aria-label="Κίτρινο"><span class="paint-dot"></span>Κίτρινο</button>
@@ -276,27 +276,42 @@ function updateClockHUD(){
 // ROUTE_GEOMETRY_BEGIN
 // The track is parameterised by travelled distance, not world Z.
 // Integrating heading allows genuine 180° hairpins with backward-running segments.
+// The original opening (0–1,800 m) is deliberately gentle, like v3.3.
+// Hairpins, gradients and obstacle density develop after introductory stages.
 const TURN_EVENTS=[
- {center:2000,sign:1},{center:2890,sign:-1},
- {center:6630,sign:-1},{center:7540,sign:1},
- {center:11180,sign:1},{center:12100,sign:-1},
+ {center:3350,sign:1},{center:4250,sign:-1},
+ {center:7600,sign:-1},{center:8500,sign:1},
+ {center:11800,sign:1},{center:12700,sign:-1},
  {center:16340,sign:-1},{center:17260,sign:1},
- {center:20520,sign:1},{center:21440,sign:-1}
+ {center:20850,sign:1},{center:21750,sign:-1}
 ];
-const CLIMB_STARTS=[3750,9450,14950,20800];
+const CLIMB_STARTS=[4700,10300,15100,20700];
 const smooth01=t=>{t=Math.max(0,Math.min(1,t));return t*t*(3-2*t);};
 function roadAngle(s){
- // Keep short connecting bends, but avoid self-intersections between adjacent switchback lanes.
- let heading=.145*Math.sin(s/174)+.09*Math.sin(s/70);
+ // Gentle steering during the opening; increasing curve amplitude later.
+ const ease=smooth01((s-800)/2500);
+ let heading=(1-ease)*(.045*Math.sin(s/260)+.02*Math.sin(s/160))
+            +ease*(.145*Math.sin(s/174)+.09*Math.sin(s/70));
  for(const turn of TURN_EVENTS)heading+=Math.PI*turn.sign*smooth01((s-turn.center+117)/234);
  return heading;
 }
 function roadElevation(s){
- let elevation=27+14*Math.sin(s/430)+5.0*Math.sin(s/126);
+ // Gentle opening, then larger variations with climbing and descending sections.
+ const growth=smooth01((s-900)/7300);
+ let elevation=27+(1.1+12.9*growth)*Math.sin(s/430)
+                 +(.6+4.4*growth)*Math.sin(s/126);
  for(const start of CLIMB_STARTS){
-   elevation+=22*(smooth01((s-start)/370)-smooth01((s-start-980)/480));
+   elevation+=22*(smooth01((s-start)/470)-smooth01((s-start-1100)/520));
  }
  return elevation;
+}
+function difficultyAt(s){
+ const fraction=Math.max(0,Math.min(1,(s-650)/Math.max(1,TRACK_LENGTH-650)));
+ return smooth01(fraction);
+}
+function difficultyText(s){
+ const fraction=difficultyAt(s);
+ return fraction<.11?'ΕΙΣΑΓΩΓΙΚΟ':fraction<.45?'ΜΕΣΑΙΟ':'ΠΡΟΧΩΡΗΜΕΝΟ';
 }
 function roadGrade(s){return (roadElevation(s+4)-roadElevation(s-4))/8;}
 function roadCurvature(s){return (roadAngle(s+4)-roadAngle(s-4))/8;}
@@ -337,7 +352,7 @@ function roadBox(mesh,s,offset,height,w,h,d,col){
 // ROUTE_GEOMETRY_END
 function switchMode(mode){accountTime();game.mode=mode;Object.keys(layers).forEach(k=>layers[k].classList.toggle('hidden',k!==mode));updateClockHUD();if(mode==='playing')canvas.focus({preventScroll:true})}
 function startGame(){accountTime();const previousOrder=questions.map(q=>q.id);questions=shuffledQuestions();if(selectedMode!=='both')questions=questions.filter(q=>q.author===MODE_AUTHORS[selectedMode]);if(questions.length!==questionPoolForMode(selectedMode).length)throw Error('Ασυμφωνία επιλεγμένων ερωτήσεων.');if(questions.length>1&&previousOrder.length===questions.length&&questions.every((q,i)=>q.id===previousOrder[i]))[questions[0],questions[1]]=[questions[1],questions[0]];Object.assign(game,{mode:'intro',speed:0,z:0,lane:0,laneSpeed:0,steer:0,time:0,totalTime:0,elapsedTime:0,questionTime:0,pauseTime:0,score:0,correct:0,station:0,question:0,localQuestion:0,selected:null,history:[],hits:new Set(),crashes:0});Object.keys(keys).forEach(k=>keys[k]=false);$('reviewPanel').hidden=true;$('reviewToggle').setAttribute('aria-expanded','false');$('answerHistory').replaceChildren();setReviewFilter('all',false);updateHUD();switchMode('playing');notify('Πάτησε ↑ ή W για να επιταχύνεις!')}
-function updateHUD(){ $('speed').textContent=Math.round(Math.abs(game.speed)*3.2);$('points').textContent=game.score;updateClockHUD();$('stationCount').textContent=`${game.station} / ${CHECKPOINTS.length}`;$('answeredCount').textContent=`${game.history.length} / ${questions.length}`;$('distanceText').textContent=`${Math.min(Math.floor(game.z),TRACK_LENGTH).toLocaleString('el-GR')} / ${TRACK_LENGTH.toLocaleString('el-GR')} m`;$('progress').style.width=`${Math.min(100,game.z/TRACK_LENGTH*100)}%`; $('routeText').textContent=game.station<CHECKPOINTS.length?`Επόμενη στάση σε ${Math.max(0,Math.ceil(CHECKPOINTS[game.station]-game.z))} m`:'Προς τον τερματισμό';const biome=biomeIndexForStage(game.station);$('biomeLabel').textContent=`ΖΩΝΗ ${biome+1}/${zoneCount()} · ${BIOMES[biome].name}`;updateRoadAlert()}
+function updateHUD(){ $('speed').textContent=Math.round(Math.abs(game.speed)*3.2);$('points').textContent=game.score;updateClockHUD();$('stationCount').textContent=`${game.station} / ${CHECKPOINTS.length}`;$('answeredCount').textContent=`${game.history.length} / ${questions.length}`;$('distanceText').textContent=`${Math.min(Math.floor(game.z),TRACK_LENGTH).toLocaleString('el-GR')} / ${TRACK_LENGTH.toLocaleString('el-GR')} m`;$('progress').style.width=`${Math.min(100,game.z/TRACK_LENGTH*100)}%`; $('routeText').textContent=game.station<CHECKPOINTS.length?`Επόμενη στάση σε ${Math.max(0,Math.ceil(CHECKPOINTS[game.station]-game.z))} m`:'Προς τον τερματισμό';const biome=biomeIndexForStage(game.station);$('biomeLabel').textContent=`ΖΩΝΗ ${biome+1}/${zoneCount()} · ${BIOMES[biome].name} · ${difficultyText(game.z)}`;updateRoadAlert()}
 function updateRoadAlert(){
  const s=game.z,alert=$('roadAlert');
  if(game.mode!=='playing'){alert.hidden=true;return;}
@@ -760,7 +775,8 @@ function update(dt){
  acceleration-=grade*56;
  if(off&&game.speed>14)acceleration-=24;
  game.speed=Math.max(0,Math.min(54,game.speed+acceleration*dt));
- const outward=-curvature*game.speed*game.speed*.28;
+ // Increase lateral inertia progressively; novice stages remain forgiving.
+ const outward=-curvature*game.speed*game.speed*(.12+.19*difficultyAt(game.z));
  const desiredSide=game.steer*game.speed*.46+outward;
  game.laneSpeed+=(desiredSide-game.laneSpeed)*Math.min(1,dt*3.5);
  game.lane+=game.laneSpeed*dt;
