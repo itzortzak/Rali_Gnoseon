@@ -83,7 +83,7 @@ for(const [mode,config] of Object.entries(expected)){
  console.log(mode+': '+config.questions+' questions / '+config.stops+' checkpoints / '+config.distance+' m / '+right+' correct');
 }
 // The trees, bushes, stones and peaks must be placed on the actual terrain.
-assert(api.sceneryRoots.length>350,'Missing roadside scenery');
+assert(api.sceneryRoots.length>900,'Missing roadside scenery');
 const types=new Set(api.sceneryRoots.map(obj=>obj.type));
 assert(types.has('tree')&&types.has('rock')&&types.has('mountain')&&types.has('bush'),'Scenery varieties missing');
 for(const obj of api.sceneryRoots){
@@ -92,10 +92,14 @@ for(const obj of api.sceneryRoots){
  assert(Math.abs(obj.height-surface)<1e-6,'Floating scenery: '+JSON.stringify(obj));
 }
 assert(api.TURN_EVENTS.length===10&&api.TURN_EVENTS[0].center>3000);
-for(let s=0;s<=1000;s+=25){
- assert(Math.abs(api.roadAngle(s))<.13,'Opening bend too sharp');
- assert(Math.abs(api.roadGrade(s))<.026,'Opening grade too steep');
+let bendPeak=0,gradePeak=0;
+for(let s=0;s<=1200;s+=25){
+ const bend=Math.abs(api.roadAngle(s)),grade=Math.abs(api.roadGrade(s));
+ bendPeak=Math.max(bendPeak,bend);gradePeak=Math.max(gradePeak,grade);
+ assert(bend<.22,'Opening bend too sharp');
+ assert(grade<.030,'Opening grade too steep');
 }
+assert(bendPeak>.12&&gradePeak>.012,'Opening must feature gentle, visible bends and hills');
 assert(api.difficultyAt(0)===0);
 assert(api.difficultyAt(5000)<api.difficultyAt(9000));
 const firstHazards=api.hazards.filter(obj=>obj.z<2400);
