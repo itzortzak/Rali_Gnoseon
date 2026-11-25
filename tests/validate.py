@@ -69,4 +69,5 @@ if(backward<150||!up||!down||TURN_EVENTS.length<8)process.exit(14);
 if(PATH_POSITIONS.length<6100)process.exit(15);
 """
 subprocess.run(['node','-e',route_js],check=True)
+subprocess.run(['node',str(p/'tests/smoke_game.cjs')],check=True)
 print('Validated v3.5: syntax, question modes, 360m stops, mountain grades and genuine 180-degree hairpins.')
