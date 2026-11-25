@@ -2,12 +2,11 @@
 'use strict';
 const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm'),assert=require('node:assert/strict');
 const html=fs.readFileSync(path.join(__dirname,'..','index.html'),'utf8');
-const match=html.match(/<script id="defaultQuestions" type="application\\/json">([\\s\\S]*?)<\\/script>/);
-assert(match,'Embedded question bank is missing');
-const bank=JSON.parse(match[1]);
-const scripts=[...html.matchAll(/<script>([\\s\\S]*?)<\\/script>/g)];
-assert(scripts.length,'Application script missing');
-let script=scripts.at(-1)[1];
+const begin='<script id="defaultQuestions" type="application/json">';
+const bankText=html.split(begin)[1]?.split('</script>')[0];
+assert(bankText,'Embedded question bank is missing');
+const bank=JSON.parse(bankText);
+let script=html.split('<script>').at(-1).split('</script>')[0];
 assert(script.includes('updateHUD();requestAnimationFrame(frame);'));
 script=script.replace('updateHUD();requestAnimationFrame(frame);',`
  globalThis.__test={game,questions:()=>questions,checkpoints:()=>CHECKPOINTS,
@@ -27,7 +26,7 @@ function createElement(){
 }
 const elements=new Map();
 const get=id=>elements.get(id)||(elements.set(id,createElement()),elements.get(id));
-get('defaultQuestions').textContent=match[1];
+get('defaultQuestions').textContent=bankText;
 const ctx=new Proxy({createLinearGradient:()=>({addColorStop:()=>{}})},{get:(obj,k)=>k in obj?obj[k]:()=>{}});
 const canvas=get('world');canvas.clientWidth=1280;canvas.clientHeight=720;
 canvas.getContext=kind=>kind==='2d'?ctx:null;
