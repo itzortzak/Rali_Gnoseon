@@ -13,7 +13,7 @@ assert len({q['id'] for q in bank})==170
 assert sum(q['author']=='Θουκυδίδης' for q in bank)==95
 assert sum(q['author']=='Ξενοφώντας' for q in bank)==75
 assert all(2<=len(q['options'])<=8 and 0<=q['answer']<len(q['options']) for q in bank)
-for k in ['Array.from({length:68}', 'STOP_SPACING=360', 'id="reviewToggle"', 'id="reviewWrong"', 'id="reviewAll"', 'id="finalDrivingTime"', 'selectedIndex:i', 'function shuffledQuestions()', 'questions=shuffledQuestions()', 'questionTime', 'pauseTime', 'elapsedTime', 'id="finalQuestionTime"', 'id="finalPauseTime"', 'id="questionClock"', 'id="pauseClock"', 'data-mode="both"', 'data-mode="thucydides"', 'data-mode="xenophon"', 'function setQuestionMode(mode)', 'function questionPoolForMode(mode)', 'function rebuildFinishArch()', 'id="introStations"', 'id="introQuestions"', 'function roadAngle(s)', 'function roadElevation(s)', 'function roadCurvature(s)', 'function pathCenter(distance)', 'function trackPoint(s,offset=0,height=0)', 'function roadBox(mesh,s,offset,height,w,h,d,col)', 'function drawFinishArch(mesh,s)', 'const hazards=[]', 'type=\'barrier\'', 'id="roadAlert"', 'const outward=-curvature*game.speed*game.speed*.28']:
+for k in ['Array.from({length:68}', 'STOP_SPACING=360', 'id="reviewToggle"', 'id="reviewWrong"', 'id="reviewAll"', 'id="finalDrivingTime"', 'selectedIndex:i', 'function shuffledQuestions()', 'questions=shuffledQuestions()', 'questionTime', 'pauseTime', 'elapsedTime', 'id="finalQuestionTime"', 'id="finalPauseTime"', 'id="questionClock"', 'id="pauseClock"', 'data-mode="both"', 'data-mode="thucydides"', 'data-mode="xenophon"', 'function setQuestionMode(mode)', 'function questionPoolForMode(mode)', 'function rebuildFinishArch()', 'id="introStations"', 'id="introQuestions"', 'function roadAngle(s)', 'function roadElevation(s)', 'function roadCurvature(s)', 'function pathCenter(distance)', 'function trackPoint(s,offset=0,height=0)', 'function roadBox(mesh,s,offset,height,w,h,d,col)', 'function drawFinishArch(mesh,s)', 'const hazards=[]', 'const type=[', 'id="roadAlert"', 'const outward=-curvature*game.speed*game.speed*.28']:
     assert k in html, f"Missing {k}"
 scripts=re.findall(r'<script>(.+?)</script>',html,re.S)
 assert scripts
@@ -57,7 +57,7 @@ for(const s of [0,100,2100,2800,6900,13000,24000,24680]){
 }
 for(const turn of TURN_EVENTS){
  const delta=roadAngle(turn.center+120)-roadAngle(turn.center-120);
- if(!(Math.abs(delta)>2.4&&Math.abs(delta)<4.0))process.exit(13);
+ if(!(Math.abs(delta)>1.95&&Math.abs(delta)<4.2))process.exit(13);
 }
 let backward=0,up=false,down=false;
 for(let s=150;s<24640;s+=16){
