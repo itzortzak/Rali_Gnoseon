@@ -27,7 +27,13 @@ function createElement(){
 const elements=new Map();
 const get=id=>elements.get(id)||(elements.set(id,createElement()),elements.get(id));
 get('defaultQuestions').textContent=bankText;
-const ctx=new Proxy({createLinearGradient:()=>({addColorStop:()=>{}})},{get:(obj,k)=>k in obj?obj[k]:()=>{}});
+const ctx=new Proxy({createLinearGradient:()=>({addColorStop:()=>{}})},{
+ get:(obj,k)=>k in obj?obj[k]:(...args)=>{
+  if(['moveTo','lineTo','fillRect','clearRect','translate','rotate'].includes(k)){
+   assert(args.every(Number.isFinite),'Invalid canvas coordinate in '+k+': '+args);
+  }
+ }
+});
 const canvas=get('world');canvas.clientWidth=1280;canvas.clientHeight=720;
 canvas.getContext=kind=>kind==='2d'?ctx:null;
 const document={getElementById:get,createElement,querySelectorAll:()=>[]};
@@ -69,8 +75,10 @@ for(const [mode,config] of Object.entries(expected)){
  api.endGame();
  assert.equal(api.game.mode,'finish');
  // The fallback renderer must also work at a real switchback.
- api.game.z=mode==='both'?2000:Math.min(2000,config.distance);
- api.render();
+ for(const sample of [0,1800,2000,2250,2890,6600,7510,11180,12200,16340,17260,20520,21440,config.distance-50]){
+  if(sample>=config.distance)continue;
+  api.game.z=sample;api.render();
+ }
  console.log(mode+': '+config.questions+' questions / '+config.stops+' checkpoints / '+config.distance+' m / '+right+' correct');
 }
 // A new run in the same mode must reshuffle its questions.
