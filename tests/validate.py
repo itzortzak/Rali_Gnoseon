@@ -13,7 +13,7 @@ assert len({q['id'] for q in bank})==170
 assert sum(q['author']=='Θουκυδίδης' for q in bank)==95
 assert sum(q['author']=='Ξενοφώντας' for q in bank)==75
 assert all(2<=len(q['options'])<=8 and 0<=q['answer']<len(q['options']) for q in bank)
-for k in ['Array.from({length:68}', 'STOP_SPACING=360', 'id="reviewToggle"', 'id="reviewWrong"', 'id="reviewAll"', 'id="finalDrivingTime"', 'selectedIndex:i', 'function shuffledQuestions()', 'questions=shuffledQuestions()', 'questionTime', 'pauseTime', 'elapsedTime', 'id="finalQuestionTime"', 'id="finalPauseTime"', 'id="questionClock"', 'id="pauseClock"', 'data-mode="both"', 'data-mode="thucydides"', 'data-mode="xenophon"', 'function setQuestionMode(mode)', 'function questionPoolForMode(mode)', 'function rebuildFinishArch()', 'id="introStations"', 'id="introQuestions"', 'function roadAngle(s)', 'function roadElevation(s)', 'function roadCurvature(s)', 'function pathCenter(distance)', 'function trackPoint(s,offset=0,height=0)', 'function roadBox(mesh,s,offset,height,w,h,d,col)', 'function drawFinishArch(mesh,s)', 'const hazards=[]', 'const type=[', 'id="roadAlert"', 'const outward=-curvature*game.speed*game.speed*.28']:
+for k in ['Array.from({length:68}', 'STOP_SPACING=360', 'id="reviewToggle"', 'id="reviewWrong"', 'id="reviewAll"', 'id="finalDrivingTime"', 'selectedIndex:i', 'function shuffledQuestions()', 'questions=shuffledQuestions()', 'questionTime', 'pauseTime', 'elapsedTime', 'id="finalQuestionTime"', 'id="finalPauseTime"', 'id="questionClock"', 'id="pauseClock"', 'data-mode="both"', 'data-mode="thucydides"', 'data-mode="xenophon"', 'function setQuestionMode(mode)', 'function questionPoolForMode(mode)', 'function rebuildFinishArch()', 'id="introStations"', 'id="introQuestions"', 'function roadAngle(s)', 'function roadElevation(s)', 'function roadCurvature(s)', 'function pathCenter(distance)', 'function trackPoint(s,offset=0,height=0)', 'function roadBox(mesh,s,offset,height,w,h,d,col)', 'function drawFinishArch(mesh,s)', 'const hazards=[]', 'const variants=[', 'id="roadAlert"', 'const outward=-curvature*game.speed*game.speed*(.12+.19*difficultyAt(game.z))', 'function scenerySurfaceHeight(distance,offset)', 'function clearOfOtherRoad(distance,lane,radius)', 'const sceneryRoots=[]', 'function difficultyAt(s)', 'function difficultyText(s)']:
     assert k in html, f"Missing {k}"
 scripts=re.findall(r'<script>(.+?)</script>',html,re.S)
 assert scripts
@@ -67,6 +67,14 @@ for(let s=150;s<24640;s+=16){
 }
 if(backward<150||!up||!down||TURN_EVENTS.length<8)process.exit(14);
 if(PATH_POSITIONS.length<6100)process.exit(15);
+// The introductory section must feel much gentler than the later mountain stages.
+if(TURN_EVENTS[0].center<3200)process.exit(16);
+for(let s=0;s<=1000;s+=10){
+ if(Math.abs(roadAngle(s))>.13 || Math.abs(roadGrade(s))>.026)process.exit(17);
+}
+if(!(Math.abs(roadAngle(200))<Math.abs(roadAngle(7800))+
+ .2))process.exit(18);
+
 """
 subprocess.run(['node','-e',route_js],check=True)
 subprocess.run(['node',str(p/'tests/smoke_game.cjs')],check=True)
@@ -100,5 +108,5 @@ if(!(minRoad>-25))throw Error('Road dips below global terrain');
 console.log('Road visibility: separate branches',closest.toFixed(1),'m apart; minimum altitude',minRoad.toFixed(1));
 """
 subprocess.run(['node','-e',visibility_js],check=True)
-print('Validated v3.6: no route self-intersections, low valley floor, camera-depth projection, 3 modes and 170 questions.')
+print('Validated v3.7: gentle opening, progressive route, grounded scenery, no self-intersections, 3 modes and 170 questions.')
 
