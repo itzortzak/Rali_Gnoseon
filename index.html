@@ -427,46 +427,122 @@ compile(){this.buf=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,this.buf);gl.
 const sub=(a,b)=>a.map((x,i)=>x-b[i]),cross=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]],dot=(a,b)=>a.reduce((t,v,i)=>t+v*b[i],0),norm=a=>{let l=Math.hypot(...a)||1;return a.map(x=>x/l)};
 const ID=new Float32Array([1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1]);
 const terrain=new Mesh();let carMesh=new Mesh();
-// World: grass, road shoulders, asphalt, markings and landscape.
-for(let zone=0;zone<BIOMES.length;zone++){
-  const start=zone===0?-170:CHECKPOINTS[zone*10-1];
-  const finish=zone===BIOMES.length-1?TRACK_LENGTH+400:CHECKPOINTS[(zone+1)*10-1];
-  terrain.quad([-450,-.21,start],[450,-.21,start],[450,-.21,finish],[-450,-.21,finish],BIOMES[zone].ground);
+// A true 3D landscape: elevated road, banked grassy verges and valley floor.
+// Larger sampling step keeps the long route efficient on classroom PCs.
+const FULL_TRACK_END=FULL_CHECKPOINTS[FULL_CHECKPOINTS.length-1]+320;
+const ROAD_STEP=15,edge=[.91,.85,.67],middle=[.96,.84,.55];
+let seed=731995;
+function rand(){seed=(1664525*seed+1013904223)>>>0;return seed/4294967296;}
+function strip(mesh,s1,s2,l,r,height,col){
+ mesh.quad(trackPoint(s1,l,height),trackPoint(s1,r,height),
+           trackPoint(s2,r,height),trackPoint(s2,l,height),col);
 }
-const edge=[.90,.86,.68],middle=[.94,.85,.59];
-function trackPoint(z,offset,y){const s=roadSlope(z),scale=1/Math.sqrt(1+s*s);return [roadX(z)+offset*scale,y,z-offset*s*scale]}
-function stripe(mesh,z1,z2,l,r,y,col){mesh.quad(trackPoint(z1,l,y),trackPoint(z1,r,y),trackPoint(z2,r,y),trackPoint(z2,l,y),col)}
-for(let z=-65;z<TRACK_LENGTH+130;z+=8){let end=Math.min(z+8,TRACK_LENGTH+130);const zone=BIOMES[biomeIndexForZ((z+end)/2)];stripe(terrain,z,end,-ROAD_HALF-2,ROAD_HALF+2,-.08,zone.shoulder);stripe(terrain,z,end,-ROAD_HALF,ROAD_HALF,-.043,zone.road);stripe(terrain,z,end,-ROAD_HALF+.38,-ROAD_HALF+.60,-.015,edge);stripe(terrain,z,end,ROAD_HALF-.60,ROAD_HALF-.38,-.015,edge)}
-for(let z=-54;z<TRACK_LENGTH+70;z+=22)stripe(terrain,z,z+10,-.13,.13,-.007,middle);
-// Visual guide for each knowledge station.
-for(let i=0;i<CHECKPOINTS.length;i++){const z=CHECKPOINTS[i],x=roadX(z),col=BIOMES[biomeIndexForStage(i)].arch;terrain.box(x-10.3,3.9,z,1.2,7.8,1.2,[.13,.33,.30]);terrain.box(x+10.3,3.9,z,1.2,7.8,1.2,[.13,.33,.30]);terrain.box(x,8.15,z,21.6,1.2,1.5,col);terrain.box(x,9.0,z,12,.55,1,[.1,.27,.27]);for(let j=0;j<6;j++){const xc=x-5.8+j*2.2;terrain.box(xc,8.6,z+1,1.2,.30,.10,i===CHECKPOINTS.length-1?[.98,.90,.88]:[.98,.93,.80])}}
-// Finish arch.
-{const x=roadX(TRACK_LENGTH),z=TRACK_LENGTH;terrain.box(x-10,4.5,z,1.6,9,2,[.1,.22,.24]);terrain.box(x+10,4.5,z,1.6,9,2,[.1,.22,.24]);terrain.box(x,9.5,z,21.3,1.8,2,[.96,.76,.28]);for(let i=0;i<8;i++)terrain.box(x-8.75+i*2.5,9.6,z+1.1,2.5,1.0,.12,i%2===0?[.13,.22,.22]:[.95,.91,.73])}
-// Deterministic scenery layout.
-let seed=731995;function rand(){seed=(1664525*seed+1013904223)>>>0;return seed/4294967296}
-function roadsideObject(x,z,scale,biome){
-  const zone=BIOMES[biome],rock=zone.rock,leaf=zone.foliage.map(v=>Math.min(1,v*(.88+rand()*.28)));
-  if(biome===4){ // Sand: shrubs and freestanding rocks; no dense forest.
-    if(rand()<.56){terrain.box(x,.48*scale,z,2.6*scale,.96*scale,1.8*scale,rock);terrain.cone(x,1.0*scale,z,1.45*scale,1.0*scale,rock.map(v=>v*.87));}
-    else {terrain.box(x,.8*scale,z,.55*scale,1.6*scale,.6*scale,[.33,.45,.26]);terrain.cone(x,1.5*scale,z,1.4*scale,1.45*scale,leaf);}
-    return;
-  }
-  if(biome===3&&rand()<.55){terrain.cone(x,.05,z,2.1*scale,3.1*scale,rock);terrain.box(x,.22*scale,z,2.8*scale,.44*scale,2.1*scale,rock.map(v=>v*.9));return;}
-  const trunk=biome===5?[.39,.34,.32]:[.33,.29,.20];
-  terrain.box(x,1.5*scale,z,.7*scale,3*scale,.7*scale,trunk);
-  terrain.cone(x,2.4*scale,z,2.7*scale,5.5*scale,leaf);
-  terrain.cone(x,4.15*scale,z,2.0*scale,4.2*scale,leaf.map(v=>Math.min(1,v*1.04)));
-  if(biome===5){terrain.cone(x,5.75*scale,z,1.12*scale,1.3*scale,[.95,.97,.99]);}
-  if(biome===6){terrain.cone(x+1.0*scale,5.1*scale,z,1.15*scale,1.4*scale,[.88,.64,.73]);}
+for(let s=-75;s<FULL_TRACK_END+120;s+=ROAD_STEP){
+ const next=Math.min(s+ROAD_STEP,FULL_TRACK_END+120);
+ const biome=BIOMES[biomeIndexForZ(Math.max(0,(s+next)/2))];
+ // Valley floor below the road, then sloped verges attach to the elevated tarmac.
+ strip(terrain,s,next,-155,155,-21,biome.ground);
+ terrain.quad(trackPoint(s,-64,-12),trackPoint(s,-ROAD_HALF-2,-.20),
+              trackPoint(next,-ROAD_HALF-2,-.20),trackPoint(next,-64,-12),biome.hill);
+ terrain.quad(trackPoint(s,ROAD_HALF+2,-.20),trackPoint(s,64,-12),
+              trackPoint(next,64,-12),trackPoint(next,ROAD_HALF+2,-.20),biome.hill);
+ strip(terrain,s,next,-ROAD_HALF-2,ROAD_HALF+2,-.13,biome.shoulder);
+ strip(terrain,s,next,-ROAD_HALF,ROAD_HALF,-.07,biome.road);
+ strip(terrain,s,next,-ROAD_HALF+.36,-ROAD_HALF+.58,-.026,edge);
+ strip(terrain,s,next,ROAD_HALF-.58,ROAD_HALF-.36,-.026,edge);
 }
-for(let z=-85;z<TRACK_LENGTH+260;z+=17){for(const side of [-1,1]){
-  const d=18+rand()*52,x=roadX(z)+side*d+rand()*8,biome=biomeIndexForZ(z);
-  if(rand()>(biome===4?.60:biome===3?.27:.04))roadsideObject(x,z+rand()*9,.70+rand()*.7,biome);
-  if(rand()>.79)terrain.box(x+side*7,.3,z+3,2+rand()*2,.7+rand()*.8,1.7,BIOMES[biome].rock);
-}}
-for(let i=0;i<45;i++){const z=rand()*(TRACK_LENGTH+180),side=i%2?1:-1,x=roadX(z)+side*(80+rand()*110),zone=BIOMES[biomeIndexForZ(z)];terrain.cone(x,-.1,z,28+rand()*38,22+rand()*45,zone.hill)}
-const hazards=Array.from({length:36},(_,i)=>({z:205+i*166,offset:(i%2?-1:1)*(2.0+(i%3)*.55)}));
-for(let i=0;i<hazards.length;i++){const h=hazards[i],x=roadX(h.z)+h.offset;terrain.cone(x,.08,h.z,1.15,2.6,[.94,.37,.13]);terrain.box(x,1.03,h.z,.75,.3,.72,[.96,.89,.74])}
+for(let s=-45;s<FULL_TRACK_END+100;s+=27){
+ strip(terrain,s,Math.min(s+12,FULL_TRACK_END+100),-.16,.16,-.016,middle);
+}
+// Knowledge checkpoint gates are aligned to the actual tangent of the road.
+for(let i=0;i<FULL_CHECKPOINTS.length;i++){
+ const s=FULL_CHECKPOINTS[i],col=BIOMES[Math.min(6,Math.floor(i/10))].arch;
+ roadBox(terrain,s,-10.3,3.85,1.1,7.7,1.2,[.13,.33,.30]);
+ roadBox(terrain,s, 10.3,3.85,1.1,7.7,1.2,[.13,.33,.30]);
+ roadBox(terrain,s,0,8.04,21.6,1.20,1.5,col);
+ roadBox(terrain,s,0,8.82,12,.44,1,[.10,.26,.27]);
+ for(let k=0;k<6;k++)
+   roadBox(terrain,s,-5.5+k*2.2,8.5,1.2,.28,.12,[.97,.93,.81]);
+}
+function drawFinishArch(mesh,s){
+ roadBox(mesh,s,-10,4.5,1.6,9,2,[.10,.22,.24]);
+ roadBox(mesh,s,10,4.5,1.6,9,2,[.10,.22,.24]);
+ roadBox(mesh,s,0,9.5,21.3,1.8,2,[.96,.76,.28]);
+ for(let i=0;i<8;i++)roadBox(mesh,s,-8.75+i*2.5,9.6,2.5,1.0,.14,i%2?[.95,.91,.73]:[.13,.22,.22]);
+}
+drawFinishArch(terrain,FULL_TRACK_END);
+// Chevron boards and guardrails announce actual tight hairpins.
+for(const turn of TURN_EVENTS){
+ for(let s=turn.center-120;s<=turn.center+124;s+=24){
+   const outside=turn.sign>0?-1:1;
+   const col=[.99,.74,.18],offset=outside*13.5;
+   roadBox(terrain,s,offset,1.5,.30,3.0,.35,[.26,.33,.32]);
+   roadBox(terrain,s,offset,3.28,2.6,1.20,.40,col);
+   roadBox(terrain,s,offset,3.28,1.2,.25,.45,[.12,.23,.25]);
+   if(s>=turn.center-90&&s<=turn.center+95)
+     roadBox(terrain,s,outside*11.4,.72,.48,1.25,10.0,[.77,.83,.77]);
+ }
+}
+// Uphill / downhill signs are placed before the major changes in road grade.
+for(const start of CLIMB_STARTS){
+ for(const s of [start-140,start+890]){
+   const isUp=s<start;
+   roadBox(terrain,s,-13.0,1.65,.27,3.2,.28,[.33,.38,.37]);
+   roadBox(terrain,s,-13.0,3.35,2.5,1.35,.28,isUp?[.99,.77,.20]:[.52,.82,.97]);
+ }
+}
+function roadsideObject(s,lane,scale,biomeIndex){
+ const biome=BIOMES[biomeIndex],rock=biome.rock;
+ const [x,base,z]=trackPoint(s,lane,-5);
+ const leaf=biome.foliage.map(v=>Math.min(1,v*(.89+rand()*.24)));
+ if(biomeIndex===4||biomeIndex===3&&rand()<.38){
+   terrain.box(x,base+scale*.5,z,2.8*scale,1.0*scale,2.4*scale,rock);
+   terrain.cone(x,base+.7*scale,z,1.9*scale,2.0*scale,rock);
+   return;
+ }
+ terrain.box(x,base+1.4*scale,z,.7*scale,2.8*scale,.7*scale,[.33,.29,.20]);
+ terrain.cone(x,base+2.1*scale,z,2.8*scale,5.5*scale,leaf);
+ terrain.cone(x,base+4.2*scale,z,2*scale,4.2*scale,leaf.map(v=>Math.min(1,v*1.05)));
+ if(biomeIndex===5)terrain.cone(x,base+5.5*scale,z,1.1*scale,1.4*scale,[.94,.96,.99]);
+}
+for(let s=-45;s<FULL_TRACK_END+180;s+=47){
+ const biome=biomeIndexForZ(Math.max(0,s));
+ for(const side of [-1,1]){
+   const lane=side*(24+rand()*78);
+   if(rand()>(biome===4?.48:.14))roadsideObject(s+rand()*16,lane,.65+rand()*.72,biome);
+   if(rand()>.71){
+     const [x,y,z]=trackPoint(s,side*(22+rand()*64),-5);
+     terrain.box(x,y+.5,z,2.6,.9,1.9,BIOMES[biome].rock);
+   }
+ }
+}
+for(let s=280;s<FULL_TRACK_END+600;s+=520){
+ const biome=BIOMES[biomeIndexForZ(s)],p=trackPoint(s,(rand()<.5?-1:1)*(180+rand()*40),-36);
+ terrain.cone(p[0],p[1],p[2],42+rand()*30,46+rand()*30,biome.hill);
+}
+// Different obstacles scattered between checkpoints; none blocks the full road.
+const hazards=[];
+for(let s=300;s<FULL_TRACK_END-100;s+=105+rand()*86){
+ if(FULL_CHECKPOINTS.some(c=>Math.abs(c-s)<49))continue;
+ const type=['cone','barrel','rock','barrier'][hazards.length%4];
+ const offset=(rand()<.5?-1:1)*(2.0+rand()*4.8);
+ const h={z:s,offset,type,radius:type==='barrier'?2.8:type==='rock'?2.0:1.65};
+ hazards.push(h);
+ const [x,y,z]=trackPoint(s,offset,.05);
+ if(type==='cone'){
+   terrain.cone(x,y,z,1.05,2.65,[.98,.38,.13]);
+   roadBox(terrain,s,offset,1.07,.86,.28,.82,[.97,.92,.79]);
+ }else if(type==='barrel'){
+   roadBox(terrain,s,offset,1.30,1.85,2.4,1.85,[.87,.36,.16]);
+   roadBox(terrain,s,offset,1.15,2.1,.35,2.1,[.97,.90,.69]);
+ }else if(type==='rock'){
+   terrain.cone(x,y,z,2.1,3.1,[.46,.44,.39]);
+   terrain.box(x,y+.38,z,2.4,.8,2.3,[.57,.51,.44]);
+ }else{
+   roadBox(terrain,s,offset,1.1,4.6,2.1,.85,[.96,.63,.14]);
+   for(let i=0;i<3;i++)roadBox(terrain,s,offset-1.5+i*1.5,1.13,.42,1.6,.94,[.96,.91,.72]);
+ }
+}
 // The vehicle mesh can be rebuilt with one of five selectable paint colours.
 function rebuildCarMesh(){
   if(carMesh.buf&&gl.deleteBuffer)gl.deleteBuffer(carMesh.buf);
