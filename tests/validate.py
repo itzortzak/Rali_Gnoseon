@@ -69,9 +69,13 @@ if(backward<150||!up||!down||TURN_EVENTS.length<8)process.exit(14);
 if(PATH_POSITIONS.length<6100)process.exit(15);
 // The introductory section must feel much gentler than the later mountain stages.
 if(TURN_EVENTS[0].center<3200)process.exit(16);
-for(let s=0;s<=1000;s+=10){
- if(Math.abs(roadAngle(s))>.13 || Math.abs(roadGrade(s))>.026)process.exit(17);
+let firstCurves=0,firstGrades=0;
+for(let s=0;s<=1200;s+=10){
+ firstCurves=Math.max(firstCurves,Math.abs(roadAngle(s)));
+ firstGrades=Math.max(firstGrades,Math.abs(roadGrade(s)));
+ if(Math.abs(roadAngle(s))>.22 || Math.abs(roadGrade(s))>.030)process.exit(17);
 }
+if(firstCurves<.12||firstGrades<.012)process.exit(19);
 if(!(Math.abs(roadAngle(200))<Math.abs(roadAngle(7800))+
  .2))process.exit(18);
 
@@ -80,8 +84,11 @@ subprocess.run(['node','-e',route_js],check=True)
 subprocess.run(['node',str(p/'tests/smoke_game.cjs')],check=True)
 
 # Visibility regression: winding branches must not intersect or obscure the road.
-assert 'const GROUND_Y=-62' in html, "The valley floor must have a fixed low elevation"
-assert 'terrain.quad(groundPoint(s,-BANK_OUTER)' in html, "Safe narrow road banks missing"
+assert 'const GROUND_Y=-8' in html, "Valley ground should be raised close to the road"
+assert 'terrain.quad(ledgePoint(s,BANK_LEDGE)' in html, "Terraced road shoulders missing"
+assert 'GROUND_TILE=105' in html and 'const groundPaletteAt=' in html, "Terrain palettes not restored"
+assert 'for(let distance=-25;distance<FULL_TRACK_END+90;distance+=34)' in html, "Forest density not restored"
+assert 'const radius=35+rand()*27,peak=48+rand()*30;' in html, "Natural hill dimensions missing"
 assert 'const depth=dot(rel,cameraForward)' in html, "Fallback projection must use real camera depth"
 assert 'perspective(Math.PI/2.70' in html, "Wider follow camera missing"
 visibility_js=route_js.split('for(const s of [0,100,2100')[0]
@@ -108,5 +115,5 @@ if(!(minRoad>-25))throw Error('Road dips below global terrain');
 console.log('Road visibility: separate branches',closest.toFixed(1),'m apart; minimum altitude',minRoad.toFixed(1));
 """
 subprocess.run(['node','-e',visibility_js],check=True)
-print('Validated v3.7: gentle opening, progressive route, grounded scenery, no self-intersections, 3 modes and 170 questions.')
+print('Validated v3.8: stronger safe curves and grades, seasonal terrain carpets, planted scenery, 3 modes and 170 questions.')
 
