@@ -483,21 +483,43 @@ terrain.quad(
  [maxGroundX+groundMargin,GROUND_Y,maxGroundZ+groundMargin],
  [minGroundX-groundMargin,GROUND_Y,maxGroundZ+groundMargin],BIOMES[0].ground
 );
-const BANK_OUTER=ROAD_HALF+23;
+// Terrain terraces support roadside trees at the same height as their roots.
+// Beyond the ledge, the hillside meets the single lower valley floor.
+const BANK_INNER=ROAD_HALF+2,BANK_LEDGE=ROAD_HALF+4.1,BANK_OUTER=ROAD_HALF+23;
 function groundPoint(distance,lateral){
  const p=trackPoint(distance,lateral,0);
  return [p[0],GROUND_Y+2,p[2]];
 }
+function scenerySurfaceHeight(distance,offset){
+ const abs=Math.abs(offset),roadY=roadElevation(distance);
+ if(abs<=BANK_INNER)return roadY-.20;
+ if(abs<=BANK_LEDGE){
+   const t=(abs-BANK_INNER)/(BANK_LEDGE-BANK_INNER);
+   return roadY-.20-1.4*t;
+ }
+ if(abs<=BANK_OUTER){
+   const t=(abs-BANK_LEDGE)/(BANK_OUTER-BANK_LEDGE);
+   return (roadY-1.6)*(1-t)+(GROUND_Y+2)*t;
+ }
+ return GROUND_Y;
+}
+function ledgePoint(distance,lateral){
+ const p=trackPoint(distance,lateral);
+ return [p[0],roadElevation(distance)-1.6,p[2]];
+}
 for(let s=-75;s<FULL_TRACK_END+120;s+=ROAD_STEP){
  const next=Math.min(s+ROAD_STEP,FULL_TRACK_END+120);
  const biome=BIOMES[biomeIndexForZ(Math.max(0,(s+next)/2))];
- // Narrow side slopes terminate far below the road, so they do not mask
- // adjacent winding sections at different heights.
- terrain.quad(groundPoint(s,-BANK_OUTER),trackPoint(s,-ROAD_HALF-2,-.20),
-              trackPoint(next,-ROAD_HALF-2,-.20),groundPoint(next,-BANK_OUTER),biome.hill);
- terrain.quad(trackPoint(s,ROAD_HALF+2,-.20),groundPoint(s,BANK_OUTER),
-              groundPoint(next,BANK_OUTER),trackPoint(next,ROAD_HALF+2,-.20),biome.hill);
- strip(terrain,s,next,-ROAD_HALF-2,ROAD_HALF+2,-.13,biome.shoulder);
+ // A small grassy bank runs alongside the roadway; trees have a real foothold.
+ terrain.quad(ledgePoint(s,-BANK_LEDGE),trackPoint(s,-BANK_INNER,-.20),
+              trackPoint(next,-BANK_INNER,-.20),ledgePoint(next,-BANK_LEDGE),biome.ground);
+ terrain.quad(groundPoint(s,-BANK_OUTER),ledgePoint(s,-BANK_LEDGE),
+              ledgePoint(next,-BANK_LEDGE),groundPoint(next,-BANK_OUTER),biome.hill);
+ terrain.quad(trackPoint(s,BANK_INNER,-.20),ledgePoint(s,BANK_LEDGE),
+              ledgePoint(next,BANK_LEDGE),trackPoint(next,BANK_INNER,-.20),biome.ground);
+ terrain.quad(ledgePoint(s,BANK_LEDGE),groundPoint(s,BANK_OUTER),
+              groundPoint(next,BANK_OUTER),ledgePoint(next,BANK_LEDGE),biome.hill);
+ strip(terrain,s,next,-BANK_INNER,BANK_INNER,-.13,biome.shoulder);
  strip(terrain,s,next,-ROAD_HALF,ROAD_HALF,-.07,biome.road);
  strip(terrain,s,next,-ROAD_HALF+.36,-ROAD_HALF+.58,-.026,edge);
  strip(terrain,s,next,ROAD_HALF-.58,ROAD_HALF-.36,-.026,edge);
