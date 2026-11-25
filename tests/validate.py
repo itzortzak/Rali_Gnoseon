@@ -70,4 +70,35 @@ if(PATH_POSITIONS.length<6100)process.exit(15);
 """
 subprocess.run(['node','-e',route_js],check=True)
 subprocess.run(['node',str(p/'tests/smoke_game.cjs')],check=True)
-print('Validated v3.5: syntax, question modes, 360m stops, mountain grades and genuine 180-degree hairpins.')
+
+# Visibility regression: winding branches must not intersect or obscure the road.
+assert 'const GROUND_Y=-62' in html, "The valley floor must have a fixed low elevation"
+assert 'terrain.quad(groundPoint(s,-BANK_OUTER)' in html, "Safe narrow road banks missing"
+assert 'const depth=dot(rel,cameraForward)' in html, "Fallback projection must use real camera depth"
+assert 'perspective(Math.PI/2.70' in html, "Wider follow camera missing"
+visibility_js=route_js.split('for(const s of [0,100,2100')[0]
+visibility_js+="""
+const cell=26,bins=new Map(),step=8;
+let closest=Infinity;
+const key=(x,z)=>x+','+z;
+for(let s=0;s<24680;s+=step){
+ const p=pathCenter(s),cx=Math.floor(p.x/cell),cz=Math.floor(p.z/cell);
+ for(let dx=-1;dx<=1;dx++)for(let dz=-1;dz<=1;dz++){
+  for(const q of bins.get(key(cx+dx,cz+dz))||[]){
+   if(s-q.s<250)continue;
+   const separation=Math.hypot(p.x-q.x,p.z-q.z);
+   closest=Math.min(closest,separation);
+  }
+ }
+ const k=key(cx,cz);
+ if(!bins.has(k))bins.set(k,[]);
+ bins.get(k).push({x:p.x,z:p.z,s});
+}
+if(!(closest>22))throw Error('Road intersects itself: closest separate branches = '+closest);
+const minRoad=Math.min(...Array.from({length:1200},(_,i)=>roadElevation(i*20)));
+if(!(minRoad>-25))throw Error('Road dips below global terrain');
+console.log('Road visibility: separate branches',closest.toFixed(1),'m apart; minimum altitude',minRoad.toFixed(1));
+"""
+subprocess.run(['node','-e',visibility_js],check=True)
+print('Validated v3.6: no route self-intersections, low valley floor, camera-depth projection, 3 modes and 170 questions.')
+
