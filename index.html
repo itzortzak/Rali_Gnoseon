@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#10262a">
-<title>Ράλι Γνώσεων 3D v3.7 — Αρχαία Ελληνικά Α΄ Λυκείου</title>
+<title>Ράλι Γνώσεων 3D v3.8 — Αρχαία Ελληνικά Α΄ Λυκείου</title>
 <style>
 :root { --dark:#10262a; --dark2:#173438; --ink:#163038; --mint:#b3e6c7; --gold:#f6cc62; --cream:#f5f3ea; --line:#dbe4dc; --muted:#627677; --red:#b44a36; }
 *{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:system-ui,-apple-system,"Segoe UI",Arial,sans-serif;background:#eef2ed;color:var(--ink)}
@@ -102,7 +102,7 @@ button,input{font:inherit}button{cursor:pointer}button:disabled{opacity:.5;curso
 </head>
 <body>
 <div class="page">
-  <div class="masthead"><div class="brand"><div class="brandmark">R↗</div><div><strong>ΡΑΛΙ ΓΝΩΣΕΩΝ <span style="color:#36755d">3D</span></strong><small>ΑΡΧΑΙΑ ΕΛΛΗΝΙΚΑ · Α΄ ΛΥΚΕΙΟΥ</small></div></div><span class="chip">ΤΡΑΠΕΖΑ ΘΕΜΑΤΩΝ · v3.7</span></div>
+  <div class="masthead"><div class="brand"><div class="brandmark">R↗</div><div><strong>ΡΑΛΙ ΓΝΩΣΕΩΝ <span style="color:#36755d">3D</span></strong><small>ΑΡΧΑΙΑ ΕΛΛΗΝΙΚΑ · Α΄ ΛΥΚΕΙΟΥ</small></div></div><span class="chip">ΤΡΑΠΕΖΑ ΘΕΜΑΤΩΝ · v3.8</span></div>
   <main class="stage" id="stage">
     <canvas id="world" aria-label="Τρισδιάστατη πίστα ράλι" tabindex="0"></canvas>
     <div class="topbar">
@@ -132,7 +132,7 @@ button,input{font:inherit}button{cursor:pointer}button:disabled{opacity:.5;curso
 </div>
 <div class="highlights"><div class="hi"><strong id="introStations">68</strong><span>Στάσεις γνώσεων</span></div><div class="hi"><strong id="introQuestions">170</strong><span>Επιμέρους ερωτήσεις</span></div><div class="hi"><strong id="introZones">7</strong><span>Διαφορετικές ζώνες τοπίου</span></div></div>
 <p class="small-note">Σε κάθε νέο αγώνα οι ερωτήσεις της επιλεγμένης ενότητας εμφανίζονται με νέα τυχαία σειρά.</p>
-        <p style="margin-bottom:13px"><b>Χειρισμός:</b> ↑ ή W γκάζι, ↓ ή S φρένο, ← / → ή A / D τιμόνι. P παύση. Η διαδρομή αρχίζει ομαλά, με ήπιες στροφές και λίγα εμπόδια. Σταδιακά ακολουθούν δυσκολότερες στροφές, φουρκέτες, ανηφόρες και κατηφόρες.</p>
+        <p style="margin-bottom:13px"><b>Χειρισμός:</b> ↑ ή W γκάζι, ↓ ή S φρένο, ← / → ή A / D τιμόνι. P παύση. Η διαδρομή ξεκινά με διαδοχικές ήπιες στροφές και μικρές ανηφόρες, πριν περάσει σταδιακά σε ορεινά τμήματα με φουρκέτες και περισσότερα εμπόδια. Το περιβάλλον περιλαμβάνει λόφους, δέντρα και διαφορετικά τοπία.</p>
         <div class="car-picker"><div class="car-picker-title">ΕΠΙΛΟΓΗ ΧΡΩΜΑΤΟΣ ΑΥΤΟΚΙΝΗΤΟΥ <span id="carSelectionName">Κίτρινο</span></div>
           <div class="car-swatches" role="group" aria-label="Επιλογή χρώματος αυτοκινήτου">
             <button type="button" class="car-swatch selected" data-car="gold" style="--paint:#f2ba39" aria-pressed="true" aria-label="Κίτρινο"><span class="paint-dot"></span>Κίτρινο</button>
@@ -290,16 +290,16 @@ const smooth01=t=>{t=Math.max(0,Math.min(1,t));return t*t*(3-2*t);};
 function roadAngle(s){
  // Gentle steering during the opening; increasing curve amplitude later.
  const ease=smooth01((s-800)/2500);
- let heading=(1-ease)*(.045*Math.sin(s/260)+.02*Math.sin(s/160))
-            +ease*(.145*Math.sin(s/174)+.09*Math.sin(s/70));
+ let heading=(1-ease)*(.115*Math.sin(s/260)+.045*Math.sin(s/160))
+            +ease*(.145*Math.sin(s/174)+.10*Math.sin(s/70));
  for(const turn of TURN_EVENTS)heading+=Math.PI*turn.sign*smooth01((s-turn.center+117)/234);
  return heading;
 }
 function roadElevation(s){
  // Gentle opening, then larger variations with climbing and descending sections.
  const growth=smooth01((s-900)/7300);
- let elevation=27+(1.1+12.9*growth)*Math.sin(s/430)
-                 +(.6+4.4*growth)*Math.sin(s/126);
+ let elevation=27+(3.3+13.2*growth)*Math.sin(s/430)
+                 +(1.15+5.15*growth)*Math.sin(s/126);
  for(const start of CLIMB_STARTS){
    elevation+=22*(smooth01((s-start)/470)-smooth01((s-start-1100)/520));
  }
@@ -463,7 +463,7 @@ const terrain=new Mesh();let carMesh=new Mesh();
 // Previously overlapping 310-m-wide terrain strips followed the local road elevation,
 // which made their upper parts hide lower neighbouring road sections at hairpins.
 const FULL_TRACK_END=FULL_CHECKPOINTS[FULL_CHECKPOINTS.length-1]+320;
-const GROUND_Y=-62,ROAD_STEP=10,edge=[.91,.85,.67],middle=[.96,.84,.55];
+const GROUND_Y=-8,ROAD_STEP=10,edge=[.91,.85,.67],middle=[.96,.84,.55];
 let seed=731995;
 function rand(){seed=(1664525*seed+1013904223)>>>0;return seed/4294967296;}
 function strip(mesh,s1,s2,l,r,height,col){
@@ -476,13 +476,34 @@ for(const point of PATH_POSITIONS){
  minGroundX=Math.min(minGroundX,point.x);maxGroundX=Math.max(maxGroundX,point.x);
  minGroundZ=Math.min(minGroundZ,point.z);maxGroundZ=Math.max(maxGroundZ,point.z);
 }
-const groundMargin=700;
-terrain.quad(
- [minGroundX-groundMargin,GROUND_Y,minGroundZ-groundMargin],
- [maxGroundX+groundMargin,GROUND_Y,minGroundZ-groundMargin],
- [maxGroundX+groundMargin,GROUND_Y,maxGroundZ+groundMargin],
- [minGroundX-groundMargin,GROUND_Y,maxGroundZ+groundMargin],BIOMES[0].ground
-);
+// Reintroduce v3.3's seven seasonal ground palettes across the full landscape.
+// On the winding track each tile takes the palette of the NEAREST road section,
+// rather than using the original straight-world Z coordinate.
+const groundMargin=480,GROUND_TILE=105;
+const groundSamples=[];
+for(let i=0;i<PATH_POSITIONS.length;i+=18){
+  const pt=PATH_POSITIONS[i];
+  groundSamples.push({x:pt.x,z:pt.z,distance:i*PATH_STEP});
+}
+const groundPaletteAt=(x,z)=>{
+  let nearest=Infinity,nearestDistance=0;
+  for(const p of groundSamples){
+    const dx=p.x-x,dz=p.z-z,d2=dx*dx+dz*dz;
+    if(d2<nearest){nearest=d2;nearestDistance=p.distance;}
+  }
+  return BIOMES[biomeIndexForZ(nearestDistance)].ground;
+};
+for(let x=minGroundX-groundMargin;x<maxGroundX+groundMargin;x+=GROUND_TILE){
+  const xx=Math.min(x+GROUND_TILE,maxGroundX+groundMargin);
+  for(let z=minGroundZ-groundMargin;z<maxGroundZ+groundMargin;z+=GROUND_TILE){
+    const zz=Math.min(z+GROUND_TILE,maxGroundZ+groundMargin);
+    const base=groundPaletteAt((x+xx)/2,(z+zz)/2);
+    const grain=.945+.050*(.5+.5*Math.sin(x*.072+z*.037));
+    const hue=base.map(c=>Math.min(1,c*grain));
+    terrain.quad([x,GROUND_Y,z],[xx,GROUND_Y,z],
+                 [xx,GROUND_Y,zz],[x,GROUND_Y,zz],hue);
+  }
+}
 // Terrain terraces support roadside trees at the same height as their roots.
 // Beyond the ledge, the hillside meets the single lower valley floor.
 const BANK_INNER=ROAD_HALF+2,BANK_LEDGE=ROAD_HALF+4.1,BANK_OUTER=ROAD_HALF+23;
@@ -610,15 +631,15 @@ function roadsideObject(distance,lane,scale,biomeIndex){
  terrain.cone(x,base+3.30*scale,z,1.25*scale,2.50*scale,leaf.map(v=>Math.min(1,v*1.11)));
  if(biomeIndex===5)terrain.cone(x,base+5.15*scale,z,.60*scale,.68*scale,[.94,.97,.99]);
 }
-for(let distance=-25;distance<FULL_TRACK_END+90;distance+=64){
+for(let distance=-25;distance<FULL_TRACK_END+90;distance+=34){
  const biomeIndex=biomeIndexForZ(Math.max(0,distance));
  for(const side of [-1,1]){
    const nearDistance=distance+rand()*14;
    const nearOffset=side*(BANK_INNER+.87+rand()*.80);
-   if(rand()>.24)roadsideObject(nearDistance,nearOffset,.67+rand()*.51,biomeIndex);
+   if(rand()>.18)roadsideObject(nearDistance,nearOffset,.76+rand()*.52,biomeIndex);
    // A second forest layer sits on the fixed-height valley floor.
-   if(rand()>.55){
-     const valleyOffset=side*(46+rand()*95),farDistance=distance+rand()*25;
+   if(rand()>.42){
+     const valleyOffset=side*(44+rand()*104),farDistance=distance+rand()*25;
      roadsideObject(farDistance,valleyOffset,1.35+rand()*1.10,biomeIndex);
    }
    if(rand()>.75){
@@ -636,7 +657,7 @@ for(let distance=-25;distance<FULL_TRACK_END+90;distance+=64){
 for(let distance=290;distance<FULL_TRACK_END+250;distance+=540){
  const biome=BIOMES[biomeIndexForZ(distance)];
  const offset=(rand()<.5?-1:1)*(190+rand()*100);
- const radius=45+rand()*28,peak=83+rand()*38;
+ const radius=35+rand()*27,peak=48+rand()*30;
  const [x,,z]=trackPoint(distance,offset);
  const nearby=clearOfOtherRoad(distance,offset,radius+6);
  if(!nearby)continue;
