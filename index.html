@@ -593,7 +593,7 @@ function plantRoot(distance,lane,type){
 function roadsideObject(distance,lane,scale,biomeIndex){
  if(!clearOfOtherRoad(distance,lane,2.3*scale))return;
  const biome=BIOMES[biomeIndex],rock=biome.rock;
- const [x,base,z]=plantRoot(distance,lane,'tree');
+ const [x,base,z]=plantRoot(distance,lane,biomeIndex===4?'bush':'tree');
  const jitter=.88+rand()*.24,leaf=biome.foliage.map(v=>Math.min(1,v*jitter));
  // Darkened ground collar hides exposed tree roots and places the trunk in soil.
  terrain.cone(x,base-.035,z,1.15*scale,.19*scale,biome.ground.map(v=>v*.77));
@@ -640,7 +640,7 @@ for(let distance=290;distance<FULL_TRACK_END+250;distance+=540){
  const [x,,z]=trackPoint(distance,offset);
  const nearby=clearOfOtherRoad(distance,offset,radius+6);
  if(!nearby)continue;
- sceneryRoots.push({distance,lane:offset,x,z,height:GROUND_Y,type:'mountain'});
+ sceneryRoots.push({distance,lane:offset,x,z,height:GROUND_Y,type:'mountain',radius,peak});
  terrain.cone(x,GROUND_Y,z,radius,peak,biome.hill);
  if(biome===BIOMES[5])terrain.cone(x,GROUND_Y+peak*.69,z,radius*.31,peak*.31,[.95,.96,.98]);
 }
@@ -776,8 +776,11 @@ function renderFallback(){
    if(Math.floor(a/14)%2===0)ribbon(a,s,-.15,.15,-.013,'#f0d492');
  }
  const items=[];
- for(let s=Math.floor((game.z+230)/32)*32;s>game.z-14;s-=32){
-   for(const side of [-1,1])items.push({s,offset:side*(23+(Math.floor(s/32)*19%53)),type:'tree'});
+ // Render the SAME planted scenery as WebGL, at its measured world height.
+ for(const plant of sceneryRoots){
+   if(plant.distance>game.z-25&&plant.distance<game.z+280)
+     items.push({s:plant.distance,offset:plant.lane,baseHeight:plant.height,worldType:plant.type,
+       radius:plant.radius||0,peak:plant.peak||0,type:plant.type});
  }
  for(let i=0;i<CHECKPOINTS.length;i++){
    const s=CHECKPOINTS[i];if(s>game.z-15&&s<game.z+270)items.push({s,offset:0,type:'arch'});
@@ -787,19 +790,22 @@ function renderFallback(){
  for(const hzd of hazards)if(hzd.z>game.z-14&&hzd.z<game.z+250)
    items.push({s:hzd.z,offset:hzd.offset,type:hzd.type});
  if(TRACK_LENGTH>game.z-15&&TRACK_LENGTH<game.z+270)items.push({s:TRACK_LENGTH,offset:0,type:'finish'});
- items.sort((a,b)=>(pr(b.s,b.offset)?.[3]??-Infinity)-(pr(a.s,a.offset)?.[3]??-Infinity));
+ const projectObject=o=>pr(o.s,o.offset,Number.isFinite(o.baseHeight)?o.baseHeight-roadElevation(o.s):0);
+ items.sort((a,b)=>(projectObject(b)?.[3]??-Infinity)-(projectObject(a)?.[3]??-Infinity));
  for(const o of items){
-   const projected=pr(o.s,o.offset);if(!projected)continue;
+   const projected=projectObject(o);if(!projected)continue;
    const [x,y,scale]=projected,sc=Math.max(0,scale);
    if(o.type==='tree'){
-     const b=BIOMES[biomeIndexForZ(o.s)],tall=3.5*sc;
-     if(b===BIOMES[4]||b===BIOMES[3]){
-       polygon([[x-2.5*sc,y],[x,y-2.5*sc],[x+2.5*sc,y]],rgb(b.rock));
-     }else{
-       ctx.fillStyle='#6a5239';ctx.fillRect(x-.31*sc,y,.62*sc,1.6*sc);
-       polygon([[x-2.5*sc,y],[x,y-tall],[x+2.5*sc,y]],rgb(b.foliage));
-       polygon([[x-2.1*sc,y-1.5*sc],[x,y-4.8*sc],[x+2.1*sc,y-1.5*sc]],rgb(b.foliage));
-     }
+     const b=BIOMES[biomeIndexForZ(o.s)];
+     ctx.fillStyle='#6a5239';ctx.fillRect(x-.25*sc,y-2.2*sc,.50*sc,2.2*sc);
+     polygon([[x-1.65*sc,y-1.4*sc],[x,y-4.3*sc],[x+1.65*sc,y-1.4*sc]],rgb(b.foliage));
+     polygon([[x-1.25*sc,y-3.3*sc],[x,y-5.8*sc],[x+1.25*sc,y-3.3*sc]],rgb(b.foliage));
+   }else if(o.type==='bush'){
+     polygon([[x-1.3*sc,y],[x-.6*sc,y-1.2*sc],[x+.7*sc,y-1.5*sc],[x+1.3*sc,y]],rgb(BIOMES[biomeIndexForZ(o.s)].foliage));
+   }else if(o.type==='mountain'){
+     const b=BIOMES[biomeIndexForZ(o.s)],peak=o.peak*sc,rad=o.radius*sc;
+     polygon([[x-rad,y],[x,y-peak],[x+rad,y]],rgb(b.hill));
+     if(b===BIOMES[5])polygon([[x-rad*.31,y-peak*.69],[x,y-peak],[x+rad*.31,y-peak*.69]],'#edf2f7');
    }else if(o.type==='arch'||o.type==='finish'){
      const half=10*sc;ctx.strokeStyle='#264d47';ctx.lineWidth=Math.max(1.5,1.15*sc);
      ctx.beginPath();ctx.moveTo(x-half,y);ctx.lineTo(x-half,y-8*sc);
