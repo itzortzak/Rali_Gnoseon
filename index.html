@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#10262a">
-<title>Ράλι Γνώσεων 3D v3.4 — Αρχαία Ελληνικά Α΄ Λυκείου</title>
+<title>Ράλι Γνώσεων 3D v3.5 — Αρχαία Ελληνικά Α΄ Λυκείου</title>
 <style>
 :root { --dark:#10262a; --dark2:#173438; --ink:#163038; --mint:#b3e6c7; --gold:#f6cc62; --cream:#f5f3ea; --line:#dbe4dc; --muted:#627677; --red:#b44a36; }
 *{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:system-ui,-apple-system,"Segoe UI",Arial,sans-serif;background:#eef2ed;color:var(--ink)}
@@ -94,11 +94,15 @@ button,input{font:inherit}button{cursor:pointer}button:disabled{opacity:.5;curso
 .topic-choice:hover{border-color:#83a592}.topic-choice.selected{border-color:#226047;box-shadow:inset 0 0 0 1px #226047;background:#e5f3e8}
 .topic-choice:focus-visible{outline:3px solid #f6c958;outline-offset:2px}
 @media(max-width:600px){.topic-choices{gap:5px}.topic-choice{min-height:55px;padding:7px 3px}.topic-choice b{font-size:11px}.topic-choice span{font-size:10px}}
+
+.road-alert{position:absolute;right:17px;top:96px;z-index:3;padding:10px 14px;border-radius:11px;border:1px solid #fee6a3;background:#173132e8;color:#ffe298;font-size:12px;font-weight:850;letter-spacing:.25px;max-width:230px;line-height:1.45;pointer-events:none}
+.road-alert[hidden]{display:none}
+@media(max-width:600px){.road-alert{right:9px;top:116px;font-size:10px;max-width:152px;padding:7px 9px}}
 </style>
 </head>
 <body>
 <div class="page">
-  <div class="masthead"><div class="brand"><div class="brandmark">R↗</div><div><strong>ΡΑΛΙ ΓΝΩΣΕΩΝ <span style="color:#36755d">3D</span></strong><small>ΑΡΧΑΙΑ ΕΛΛΗΝΙΚΑ · Α΄ ΛΥΚΕΙΟΥ</small></div></div><span class="chip">ΤΡΑΠΕΖΑ ΘΕΜΑΤΩΝ · v3.4</span></div>
+  <div class="masthead"><div class="brand"><div class="brandmark">R↗</div><div><strong>ΡΑΛΙ ΓΝΩΣΕΩΝ <span style="color:#36755d">3D</span></strong><small>ΑΡΧΑΙΑ ΕΛΛΗΝΙΚΑ · Α΄ ΛΥΚΕΙΟΥ</small></div></div><span class="chip">ΤΡΑΠΕΖΑ ΘΕΜΑΤΩΝ · v3.5</span></div>
   <main class="stage" id="stage">
     <canvas id="world" aria-label="Τρισδιάστατη πίστα ράλι" tabindex="0"></canvas>
     <div class="topbar">
@@ -109,8 +113,8 @@ button,input{font:inherit}button{cursor:pointer}button:disabled{opacity:.5;curso
       </div>
       <div class="metric wide"><span>ΣΤΑΣΕΙΣ · ΑΠΑΝΤΗΣΕΙΣ</span><strong id="stationCount">0 / 68</strong><em id="answeredCount">0 / 170</em></div>
     </div>
-    <div class="toast" id="toast" role="status"></div>
-    <div class="routebar"><div class="routebar-title"><span id="routeText">Θουκυδίδης & Ξενοφώντας</span><b id="distanceText">0 / 8.400 m</b></div><div class="track"><div id="progress"></div></div><div class="zone-indicator" id="biomeLabel">ΖΩΝΗ 1/7 · Πράσινοι λόφοι</div></div>
+    <div class="toast" id="toast" role="status"></div><div class="road-alert" id="roadAlert" aria-live="off" hidden></div>
+    <div class="routebar"><div class="routebar-title"><span id="routeText">Θουκυδίδης & Ξενοφώντας</span><b id="distanceText">0 / 24.680 m</b></div><div class="track"><div id="progress"></div></div><div class="zone-indicator" id="biomeLabel">ΖΩΝΗ 1/7 · Πράσινοι λόφοι</div></div>
     <div class="helpbar">↑ Επιτάχυνση · ↓ Φρένο · ← → Τιμόνι · P Παύση</div>
     <div class="controls" id="touchControls" aria-label="Χειριστήρια αφής"><div class="pad"><button class="ctrl" data-key="ArrowLeft" aria-label="Αριστερά">←</button><button class="ctrl" data-key="ArrowRight" aria-label="Δεξιά">→</button></div><div class="pedals"><button class="ctrl" data-key="ArrowDown" aria-label="Φρένο">ΦΡΕΝΟ</button><button class="ctrl gas" data-key="ArrowUp" aria-label="Γκάζι">ΓΚΑΖΙ</button></div></div>
     <section class="layer" id="introLayer" aria-label="Έναρξη παιχνιδιού">
@@ -128,7 +132,7 @@ button,input{font:inherit}button{cursor:pointer}button:disabled{opacity:.5;curso
 </div>
 <div class="highlights"><div class="hi"><strong id="introStations">68</strong><span>Στάσεις γνώσεων</span></div><div class="hi"><strong id="introQuestions">170</strong><span>Επιμέρους ερωτήσεις</span></div><div class="hi"><strong id="introZones">7</strong><span>Διαφορετικές ζώνες τοπίου</span></div></div>
 <p class="small-note">Σε κάθε νέο αγώνα οι ερωτήσεις της επιλεγμένης ενότητας εμφανίζονται με νέα τυχαία σειρά.</p>
-        <p style="margin-bottom:13px"><b>Χειρισμός:</b> ↑ ή W γκάζι, ↓ ή S φρένο, ← / → ή A / D τιμόνι. P παύση. Στις στροφές, μείνε εντός του δρόμου και απόφυγε τους κώνους.</p>
+        <p style="margin-bottom:13px"><b>Χειρισμός:</b> ↑ ή W γκάζι, ↓ ή S φρένο, ← / → ή A / D τιμόνι. P παύση. Η νέα ορεινή διαδρομή έχει αναστροφές, ανηφόρες, κατηφόρες και εμπόδια. Μείωσε ταχύτητα στις κλειστές στροφές και απόφυγε κώνους, βαρέλια, βράχους και οδοφράγματα.</p>
         <div class="car-picker"><div class="car-picker-title">ΕΠΙΛΟΓΗ ΧΡΩΜΑΤΟΣ ΑΥΤΟΚΙΝΗΤΟΥ <span id="carSelectionName">Κίτρινο</span></div>
           <div class="car-swatches" role="group" aria-label="Επιλογή χρώματος αυτοκινήτου">
             <button type="button" class="car-swatch selected" data-car="gold" style="--paint:#f2ba39" aria-pressed="true" aria-label="Κίτρινο"><span class="paint-dot"></span>Κίτρινο</button>
@@ -192,10 +196,10 @@ function shuffledQuestions(){
   }
   return result;
 }
-const ROAD_HALF=9.2, FIRST_STOP=150, STOP_SPACING=120;
+const ROAD_HALF=9.2, FIRST_STOP=240, STOP_SPACING=360;
 const FULL_CHECKPOINTS=Array.from({length:68},(_,i)=>FIRST_STOP+i*STOP_SPACING);
 let CHECKPOINTS=FULL_CHECKPOINTS.slice();
-let TRACK_LENGTH=CHECKPOINTS[CHECKPOINTS.length-1]+210;
+let TRACK_LENGTH=CHECKPOINTS[CHECKPOINTS.length-1]+320;
 let QUESTIONS_PER_STOP=CHECKPOINTS.map((_,i)=>i%2===0?2:3);
 let selectedMode='both';
 const MODE_AUTHORS={thucydides:'Θουκυδίδης',xenophon:'Ξενοφώντας'};
@@ -209,7 +213,7 @@ function setQuestionMode(mode){
   if(!pool.length||pool.length%5!==0)throw Error('Μη έγκυρος αριθμός ερωτήσεων.');
   selectedMode=mode;questions=pool.slice();
   CHECKPOINTS=Array.from({length:pool.length/5*2},(_,i)=>FIRST_STOP+i*STOP_SPACING);
-  TRACK_LENGTH=CHECKPOINTS[CHECKPOINTS.length-1]+(mode==='both'?210:90);
+  TRACK_LENGTH=CHECKPOINTS[CHECKPOINTS.length-1]+(mode==='both'?320:140);
   QUESTIONS_PER_STOP=CHECKPOINTS.map((_,i)=>i%2===0?2:3);
   if(QUESTIONS_PER_STOP.reduce((sum,n)=>sum+n,0)!==questions.length)throw Error('Ασυμφωνία ερωτήσεων και στάσεων.');
   for(const button of document.querySelectorAll('[data-mode]')){
@@ -269,11 +273,80 @@ function updateClockHUD(){
   $('pauseClock').textContent=formatTime(game.pauseTime);
   $('pauseTotalClock').textContent=formatTime(game.elapsedTime);
 }
-function roadX(z){return 8*Math.sin(z/151)+4*Math.sin(z/69)}
-function roadSlope(z){return 8*Math.cos(z/151)/151+4*Math.cos(z/69)/69}
+// ROUTE_GEOMETRY_BEGIN
+// The track is parameterised by travelled distance, not world Z.
+// Integrating heading allows genuine 180° hairpins with backward-running segments.
+const TURN_EVENTS=[
+ {center:2000,sign:1},{center:2890,sign:-1},
+ {center:6630,sign:-1},{center:7540,sign:1},
+ {center:11180,sign:1},{center:12100,sign:-1},
+ {center:16340,sign:-1},{center:17260,sign:1},
+ {center:20520,sign:1},{center:21440,sign:-1}
+];
+const CLIMB_STARTS=[3750,9450,14950,20800];
+const smooth01=t=>{t=Math.max(0,Math.min(1,t));return t*t*(3-2*t);};
+function roadAngle(s){
+ let heading=.57*Math.sin(s/174)+.19*Math.sin(s/70);
+ for(const turn of TURN_EVENTS)heading+=Math.PI*turn.sign*smooth01((s-turn.center+117)/234);
+ return heading;
+}
+function roadElevation(s){
+ let elevation=27+14*Math.sin(s/430)+5.0*Math.sin(s/126);
+ for(const start of CLIMB_STARTS){
+   elevation+=22*(smooth01((s-start)/370)-smooth01((s-start-980)/480));
+ }
+ return elevation;
+}
+function roadGrade(s){return (roadElevation(s+4)-roadElevation(s-4))/8;}
+function roadCurvature(s){return (roadAngle(s+4)-roadAngle(s-4))/8;}
+const PATH_STEP=4;
+const PATH_MAX=FULL_CHECKPOINTS[FULL_CHECKPOINTS.length-1]+1000;
+const PATH_POSITIONS=[{x:0,z:0}];
+for(let i=1;i<=Math.ceil(PATH_MAX/PATH_STEP);i++){
+ const heading=roadAngle((i-.5)*PATH_STEP);
+ const prev=PATH_POSITIONS[i-1];
+ PATH_POSITIONS.push({x:prev.x+Math.sin(heading)*PATH_STEP,z:prev.z+Math.cos(heading)*PATH_STEP});
+}
+function pathCenter(distance){
+ if(distance<0){const heading=roadAngle(0);return {x:Math.sin(heading)*distance,z:Math.cos(heading)*distance};}
+ const index=Math.min(PATH_POSITIONS.length-2,Math.max(0,Math.floor(distance/PATH_STEP)));
+ const u=Math.max(0,Math.min(1,distance/PATH_STEP-index));
+ const a=PATH_POSITIONS[index],b=PATH_POSITIONS[index+1];
+ return {x:a.x+(b.x-a.x)*u,z:a.z+(b.z-a.z)*u};
+}
+function roadX(s){return pathCenter(s).x;}
+function roadZ(s){return pathCenter(s).z;}
+function roadSlope(s){return roadGrade(s);}
+function trackPoint(s,offset=0,height=0){
+ const p=pathCenter(s),angle=roadAngle(s);
+ return [p.x+Math.cos(angle)*offset,roadElevation(s)+height,p.z-Math.sin(angle)*offset];
+}
+// Road-aligned rectangular objects: gantries, guardrails, barriers and signs.
+function roadBox(mesh,s,offset,height,w,h,d,col){
+ const center=trackPoint(s,offset,height),a=roadAngle(s),c=Math.cos(a),si=Math.sin(a);
+ const pt=(x,y,z)=>[center[0]+c*x+si*z,center[1]+y,center[2]-si*x+c*z];
+ const x=w/2,y=h/2,z=d/2;
+ const A=pt(-x,-y,-z),B=pt(x,-y,-z),C=pt(x,y,-z),D=pt(-x,y,-z);
+ const E=pt(-x,-y,z),F=pt(x,-y,z),G=pt(x,y,z),H=pt(-x,y,z);
+ mesh.quad(A,B,C,D,col);mesh.quad(F,E,H,G,col);
+ mesh.quad(E,A,D,H,col);mesh.quad(B,F,G,C,col);
+ mesh.quad(D,C,G,H,col.map(v=>Math.min(1,v*1.07)));
+ mesh.quad(E,F,B,A,col.map(v=>v*.8));
+}
+// ROUTE_GEOMETRY_END
 function switchMode(mode){accountTime();game.mode=mode;Object.keys(layers).forEach(k=>layers[k].classList.toggle('hidden',k!==mode));updateClockHUD();if(mode==='playing')canvas.focus({preventScroll:true})}
 function startGame(){accountTime();const previousOrder=questions.map(q=>q.id);questions=shuffledQuestions();if(selectedMode!=='both')questions=questions.filter(q=>q.author===MODE_AUTHORS[selectedMode]);if(questions.length!==questionPoolForMode(selectedMode).length)throw Error('Ασυμφωνία επιλεγμένων ερωτήσεων.');if(questions.length>1&&previousOrder.length===questions.length&&questions.every((q,i)=>q.id===previousOrder[i]))[questions[0],questions[1]]=[questions[1],questions[0]];Object.assign(game,{mode:'intro',speed:0,z:0,lane:0,laneSpeed:0,steer:0,time:0,totalTime:0,elapsedTime:0,questionTime:0,pauseTime:0,score:0,correct:0,station:0,question:0,localQuestion:0,selected:null,history:[],hits:new Set(),crashes:0});Object.keys(keys).forEach(k=>keys[k]=false);$('reviewPanel').hidden=true;$('reviewToggle').setAttribute('aria-expanded','false');$('answerHistory').replaceChildren();setReviewFilter('all',false);updateHUD();switchMode('playing');notify('Πάτησε ↑ ή W για να επιταχύνεις!')}
-function updateHUD(){ $('speed').textContent=Math.round(Math.abs(game.speed)*3.2);$('points').textContent=game.score;updateClockHUD();$('stationCount').textContent=`${game.station} / ${CHECKPOINTS.length}`;$('answeredCount').textContent=`${game.history.length} / ${questions.length}`;$('distanceText').textContent=`${Math.min(Math.floor(game.z),TRACK_LENGTH).toLocaleString('el-GR')} / ${TRACK_LENGTH.toLocaleString('el-GR')} m`;$('progress').style.width=`${Math.min(100,game.z/TRACK_LENGTH*100)}%`; $('routeText').textContent=game.station<CHECKPOINTS.length?`Επόμενη στάση σε ${Math.max(0,Math.ceil(CHECKPOINTS[game.station]-game.z))} m`:'Προς τον τερματισμό';const biome=biomeIndexForStage(game.station);$('biomeLabel').textContent=`ΖΩΝΗ ${biome+1}/${zoneCount()} · ${BIOMES[biome].name}`}
+function updateHUD(){ $('speed').textContent=Math.round(Math.abs(game.speed)*3.2);$('points').textContent=game.score;updateClockHUD();$('stationCount').textContent=`${game.station} / ${CHECKPOINTS.length}`;$('answeredCount').textContent=`${game.history.length} / ${questions.length}`;$('distanceText').textContent=`${Math.min(Math.floor(game.z),TRACK_LENGTH).toLocaleString('el-GR')} / ${TRACK_LENGTH.toLocaleString('el-GR')} m`;$('progress').style.width=`${Math.min(100,game.z/TRACK_LENGTH*100)}%`; $('routeText').textContent=game.station<CHECKPOINTS.length?`Επόμενη στάση σε ${Math.max(0,Math.ceil(CHECKPOINTS[game.station]-game.z))} m`:'Προς τον τερματισμό';const biome=biomeIndexForStage(game.station);$('biomeLabel').textContent=`ΖΩΝΗ ${biome+1}/${zoneCount()} · ${BIOMES[biome].name}`;updateRoadAlert()}
+function updateRoadAlert(){
+ const s=game.z,alert=$('roadAlert');
+ if(game.mode!=='playing'){alert.hidden=true;return;}
+ const turn=TURN_EVENTS.find(t=>t.center+130>=s&&t.center-s<330);
+ const grade=roadGrade(s);
+ if(turn){alert.textContent=`⚠ ΑΝΑΣΤΡΟΦΗ 180° ${turn.sign>0?'ΔΕΞΙΑ':'ΑΡΙΣΤΕΡΑ'} · ${Math.max(0,Math.round(turn.center-s))} m — ΜΕΙΩΣΕ ΤΑΧΥΤΗΤΑ`;alert.hidden=false;}
+ else if(grade>.043){alert.textContent=`↗ ΑΝΗΦΟΡΑ ${Math.round(grade*100)}%`;alert.hidden=false;}
+ else if(grade<-.043){alert.textContent=`↘ ΚΑΤΗΦΟΡΑ ${Math.round(-grade*100)}% · ΠΡΟΣΟΧΗ`;alert.hidden=false;}
+ else {alert.hidden=true;}
+}
 function beginQuiz(){game.speed=0;game.laneSpeed=0;game.selected=null;game.localQuestion=0;updateHUD();switchMode('quiz');renderQuestion()}
 function renderQuestion(){const q=questions[game.question];if(!q){if(game.question===questions.length&&game.station===CHECKPOINTS.length)resumeRace();else throw Error('Λείπει ερώτηση από τη διαδρομή');return}game.selected=null;$('quizStation').textContent=`${game.station+1} / ${CHECKPOINTS.length}`;$('quizNumber').textContent=`Ερώτηση ${game.question+1} / ${questions.length}`;$('questionSection').textContent=q.section;$('questionProgress').style.width=`${game.question/questions.length*100}%`;$('questionTitle').textContent=q.question;$('answerPanel').classList.remove('show','bad');$('choices').replaceChildren();$('choices').classList.toggle('matching',q.type==='matching');q.options.forEach((option,i)=>{const b=document.createElement('button');b.type='button';b.className='choice';b.innerHTML=`<span class="num">${i+1}</span>`;const label=document.createElement('span');label.textContent=option;b.appendChild(label);b.addEventListener('click',()=>answerQuestion(i));$('choices').appendChild(b)})}
 function answerQuestion(i){if(game.selected!==null)return;const q=questions[game.question];game.selected=i;const right=i===q.answer;if(right){game.score+=100;game.correct++}game.history.push({questionIndex:game.question,selectedIndex:i,right});[...$('choices').children].forEach((b,n)=>{b.disabled=true;if(n===q.answer)b.classList.add('correct');if(n===i&&!right)b.classList.add('incorrect')});$('answerHeading').textContent=right?'✓ Σωστή απάντηση · +100 βαθμοί':'Η σωστή απάντηση είναι: '+q.options[q.answer];$('answerExplain').textContent=q.explanation;$('bookRef').textContent=q.bookRef||'Σχολικό βιβλίο · Εισαγωγή';$('answerSource').href=q.sourceUrl;$('answerPanel').classList.toggle('bad',!right);$('answerPanel').classList.add('show');if(q.type==='matching')$('answerPanel').scrollIntoView({block:'nearest',behavior:'smooth'});$('nextQuestion').textContent=game.localQuestion===QUESTIONS_PER_STOP[game.station]-1?'ΣΥΝΕΧΕΙΑ ΤΟΥ ΡΑΛΙ →':'ΕΠΟΜΕΝΗ ΕΡΩΤΗΣΗ →';updateHUD()}
@@ -368,46 +441,122 @@ compile(){this.buf=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,this.buf);gl.
 const sub=(a,b)=>a.map((x,i)=>x-b[i]),cross=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]],dot=(a,b)=>a.reduce((t,v,i)=>t+v*b[i],0),norm=a=>{let l=Math.hypot(...a)||1;return a.map(x=>x/l)};
 const ID=new Float32Array([1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1]);
 const terrain=new Mesh();let carMesh=new Mesh();
-// World: grass, road shoulders, asphalt, markings and landscape.
-for(let zone=0;zone<BIOMES.length;zone++){
-  const start=zone===0?-170:CHECKPOINTS[zone*10-1];
-  const finish=zone===BIOMES.length-1?TRACK_LENGTH+400:CHECKPOINTS[(zone+1)*10-1];
-  terrain.quad([-450,-.21,start],[450,-.21,start],[450,-.21,finish],[-450,-.21,finish],BIOMES[zone].ground);
+// A true 3D landscape: elevated road, banked grassy verges and valley floor.
+// Larger sampling step keeps the long route efficient on classroom PCs.
+const FULL_TRACK_END=FULL_CHECKPOINTS[FULL_CHECKPOINTS.length-1]+320;
+const ROAD_STEP=15,edge=[.91,.85,.67],middle=[.96,.84,.55];
+let seed=731995;
+function rand(){seed=(1664525*seed+1013904223)>>>0;return seed/4294967296;}
+function strip(mesh,s1,s2,l,r,height,col){
+ mesh.quad(trackPoint(s1,l,height),trackPoint(s1,r,height),
+           trackPoint(s2,r,height),trackPoint(s2,l,height),col);
 }
-const edge=[.90,.86,.68],middle=[.94,.85,.59];
-function trackPoint(z,offset,y){const s=roadSlope(z),scale=1/Math.sqrt(1+s*s);return [roadX(z)+offset*scale,y,z-offset*s*scale]}
-function stripe(mesh,z1,z2,l,r,y,col){mesh.quad(trackPoint(z1,l,y),trackPoint(z1,r,y),trackPoint(z2,r,y),trackPoint(z2,l,y),col)}
-for(let z=-65;z<TRACK_LENGTH+130;z+=8){let end=Math.min(z+8,TRACK_LENGTH+130);const zone=BIOMES[biomeIndexForZ((z+end)/2)];stripe(terrain,z,end,-ROAD_HALF-2,ROAD_HALF+2,-.08,zone.shoulder);stripe(terrain,z,end,-ROAD_HALF,ROAD_HALF,-.043,zone.road);stripe(terrain,z,end,-ROAD_HALF+.38,-ROAD_HALF+.60,-.015,edge);stripe(terrain,z,end,ROAD_HALF-.60,ROAD_HALF-.38,-.015,edge)}
-for(let z=-54;z<TRACK_LENGTH+70;z+=22)stripe(terrain,z,z+10,-.13,.13,-.007,middle);
-// Visual guide for each knowledge station.
-for(let i=0;i<CHECKPOINTS.length;i++){const z=CHECKPOINTS[i],x=roadX(z),col=BIOMES[biomeIndexForStage(i)].arch;terrain.box(x-10.3,3.9,z,1.2,7.8,1.2,[.13,.33,.30]);terrain.box(x+10.3,3.9,z,1.2,7.8,1.2,[.13,.33,.30]);terrain.box(x,8.15,z,21.6,1.2,1.5,col);terrain.box(x,9.0,z,12,.55,1,[.1,.27,.27]);for(let j=0;j<6;j++){const xc=x-5.8+j*2.2;terrain.box(xc,8.6,z+1,1.2,.30,.10,i===CHECKPOINTS.length-1?[.98,.90,.88]:[.98,.93,.80])}}
-// Finish arch.
-{const x=roadX(TRACK_LENGTH),z=TRACK_LENGTH;terrain.box(x-10,4.5,z,1.6,9,2,[.1,.22,.24]);terrain.box(x+10,4.5,z,1.6,9,2,[.1,.22,.24]);terrain.box(x,9.5,z,21.3,1.8,2,[.96,.76,.28]);for(let i=0;i<8;i++)terrain.box(x-8.75+i*2.5,9.6,z+1.1,2.5,1.0,.12,i%2===0?[.13,.22,.22]:[.95,.91,.73])}
-// Deterministic scenery layout.
-let seed=731995;function rand(){seed=(1664525*seed+1013904223)>>>0;return seed/4294967296}
-function roadsideObject(x,z,scale,biome){
-  const zone=BIOMES[biome],rock=zone.rock,leaf=zone.foliage.map(v=>Math.min(1,v*(.88+rand()*.28)));
-  if(biome===4){ // Sand: shrubs and freestanding rocks; no dense forest.
-    if(rand()<.56){terrain.box(x,.48*scale,z,2.6*scale,.96*scale,1.8*scale,rock);terrain.cone(x,1.0*scale,z,1.45*scale,1.0*scale,rock.map(v=>v*.87));}
-    else {terrain.box(x,.8*scale,z,.55*scale,1.6*scale,.6*scale,[.33,.45,.26]);terrain.cone(x,1.5*scale,z,1.4*scale,1.45*scale,leaf);}
-    return;
-  }
-  if(biome===3&&rand()<.55){terrain.cone(x,.05,z,2.1*scale,3.1*scale,rock);terrain.box(x,.22*scale,z,2.8*scale,.44*scale,2.1*scale,rock.map(v=>v*.9));return;}
-  const trunk=biome===5?[.39,.34,.32]:[.33,.29,.20];
-  terrain.box(x,1.5*scale,z,.7*scale,3*scale,.7*scale,trunk);
-  terrain.cone(x,2.4*scale,z,2.7*scale,5.5*scale,leaf);
-  terrain.cone(x,4.15*scale,z,2.0*scale,4.2*scale,leaf.map(v=>Math.min(1,v*1.04)));
-  if(biome===5){terrain.cone(x,5.75*scale,z,1.12*scale,1.3*scale,[.95,.97,.99]);}
-  if(biome===6){terrain.cone(x+1.0*scale,5.1*scale,z,1.15*scale,1.4*scale,[.88,.64,.73]);}
+for(let s=-75;s<FULL_TRACK_END+120;s+=ROAD_STEP){
+ const next=Math.min(s+ROAD_STEP,FULL_TRACK_END+120);
+ const biome=BIOMES[biomeIndexForZ(Math.max(0,(s+next)/2))];
+ // Valley floor below the road, then sloped verges attach to the elevated tarmac.
+ strip(terrain,s,next,-155,155,-21,biome.ground);
+ terrain.quad(trackPoint(s,-64,-12),trackPoint(s,-ROAD_HALF-2,-.20),
+              trackPoint(next,-ROAD_HALF-2,-.20),trackPoint(next,-64,-12),biome.hill);
+ terrain.quad(trackPoint(s,ROAD_HALF+2,-.20),trackPoint(s,64,-12),
+              trackPoint(next,64,-12),trackPoint(next,ROAD_HALF+2,-.20),biome.hill);
+ strip(terrain,s,next,-ROAD_HALF-2,ROAD_HALF+2,-.13,biome.shoulder);
+ strip(terrain,s,next,-ROAD_HALF,ROAD_HALF,-.07,biome.road);
+ strip(terrain,s,next,-ROAD_HALF+.36,-ROAD_HALF+.58,-.026,edge);
+ strip(terrain,s,next,ROAD_HALF-.58,ROAD_HALF-.36,-.026,edge);
 }
-for(let z=-85;z<TRACK_LENGTH+260;z+=17){for(const side of [-1,1]){
-  const d=18+rand()*52,x=roadX(z)+side*d+rand()*8,biome=biomeIndexForZ(z);
-  if(rand()>(biome===4?.60:biome===3?.27:.04))roadsideObject(x,z+rand()*9,.70+rand()*.7,biome);
-  if(rand()>.79)terrain.box(x+side*7,.3,z+3,2+rand()*2,.7+rand()*.8,1.7,BIOMES[biome].rock);
-}}
-for(let i=0;i<45;i++){const z=rand()*(TRACK_LENGTH+180),side=i%2?1:-1,x=roadX(z)+side*(80+rand()*110),zone=BIOMES[biomeIndexForZ(z)];terrain.cone(x,-.1,z,28+rand()*38,22+rand()*45,zone.hill)}
-const hazards=Array.from({length:36},(_,i)=>({z:205+i*166,offset:(i%2?-1:1)*(2.0+(i%3)*.55)}));
-for(let i=0;i<hazards.length;i++){const h=hazards[i],x=roadX(h.z)+h.offset;terrain.cone(x,.08,h.z,1.15,2.6,[.94,.37,.13]);terrain.box(x,1.03,h.z,.75,.3,.72,[.96,.89,.74])}
+for(let s=-45;s<FULL_TRACK_END+100;s+=27){
+ strip(terrain,s,Math.min(s+12,FULL_TRACK_END+100),-.16,.16,-.016,middle);
+}
+// Knowledge checkpoint gates are aligned to the actual tangent of the road.
+for(let i=0;i<FULL_CHECKPOINTS.length;i++){
+ const s=FULL_CHECKPOINTS[i],col=BIOMES[Math.min(6,Math.floor(i/10))].arch;
+ roadBox(terrain,s,-10.3,3.85,1.1,7.7,1.2,[.13,.33,.30]);
+ roadBox(terrain,s, 10.3,3.85,1.1,7.7,1.2,[.13,.33,.30]);
+ roadBox(terrain,s,0,8.04,21.6,1.20,1.5,col);
+ roadBox(terrain,s,0,8.82,12,.44,1,[.10,.26,.27]);
+ for(let k=0;k<6;k++)
+   roadBox(terrain,s,-5.5+k*2.2,8.5,1.2,.28,.12,[.97,.93,.81]);
+}
+function drawFinishArch(mesh,s){
+ roadBox(mesh,s,-10,4.5,1.6,9,2,[.10,.22,.24]);
+ roadBox(mesh,s,10,4.5,1.6,9,2,[.10,.22,.24]);
+ roadBox(mesh,s,0,9.5,21.3,1.8,2,[.96,.76,.28]);
+ for(let i=0;i<8;i++)roadBox(mesh,s,-8.75+i*2.5,9.6,2.5,1.0,.14,i%2?[.95,.91,.73]:[.13,.22,.22]);
+}
+drawFinishArch(terrain,FULL_TRACK_END);
+// Chevron boards and guardrails announce actual tight hairpins.
+for(const turn of TURN_EVENTS){
+ for(let s=turn.center-120;s<=turn.center+124;s+=24){
+   const outside=turn.sign>0?-1:1;
+   const col=[.99,.74,.18],offset=outside*13.5;
+   roadBox(terrain,s,offset,1.5,.30,3.0,.35,[.26,.33,.32]);
+   roadBox(terrain,s,offset,3.28,2.6,1.20,.40,col);
+   roadBox(terrain,s,offset,3.28,1.2,.25,.45,[.12,.23,.25]);
+   if(s>=turn.center-90&&s<=turn.center+95)
+     roadBox(terrain,s,outside*11.4,.72,.48,1.25,10.0,[.77,.83,.77]);
+ }
+}
+// Uphill / downhill signs are placed before the major changes in road grade.
+for(const start of CLIMB_STARTS){
+ for(const s of [start-140,start+890]){
+   const isUp=s<start;
+   roadBox(terrain,s,-13.0,1.65,.27,3.2,.28,[.33,.38,.37]);
+   roadBox(terrain,s,-13.0,3.35,2.5,1.35,.28,isUp?[.99,.77,.20]:[.52,.82,.97]);
+ }
+}
+function roadsideObject(s,lane,scale,biomeIndex){
+ const biome=BIOMES[biomeIndex],rock=biome.rock;
+ const [x,base,z]=trackPoint(s,lane,-5);
+ const leaf=biome.foliage.map(v=>Math.min(1,v*(.89+rand()*.24)));
+ if(biomeIndex===4||biomeIndex===3&&rand()<.38){
+   terrain.box(x,base+scale*.5,z,2.8*scale,1.0*scale,2.4*scale,rock);
+   terrain.cone(x,base+.7*scale,z,1.9*scale,2.0*scale,rock);
+   return;
+ }
+ terrain.box(x,base+1.4*scale,z,.7*scale,2.8*scale,.7*scale,[.33,.29,.20]);
+ terrain.cone(x,base+2.1*scale,z,2.8*scale,5.5*scale,leaf);
+ terrain.cone(x,base+4.2*scale,z,2*scale,4.2*scale,leaf.map(v=>Math.min(1,v*1.05)));
+ if(biomeIndex===5)terrain.cone(x,base+5.5*scale,z,1.1*scale,1.4*scale,[.94,.96,.99]);
+}
+for(let s=-45;s<FULL_TRACK_END+180;s+=47){
+ const biome=biomeIndexForZ(Math.max(0,s));
+ for(const side of [-1,1]){
+   const lane=side*(24+rand()*78);
+   if(rand()>(biome===4?.48:.14))roadsideObject(s+rand()*16,lane,.65+rand()*.72,biome);
+   if(rand()>.71){
+     const [x,y,z]=trackPoint(s,side*(22+rand()*64),-5);
+     terrain.box(x,y+.5,z,2.6,.9,1.9,BIOMES[biome].rock);
+   }
+ }
+}
+for(let s=280;s<FULL_TRACK_END+600;s+=520){
+ const biome=BIOMES[biomeIndexForZ(s)],p=trackPoint(s,(rand()<.5?-1:1)*(180+rand()*40),-36);
+ terrain.cone(p[0],p[1],p[2],42+rand()*30,46+rand()*30,biome.hill);
+}
+// Different obstacles scattered between checkpoints; none blocks the full road.
+const hazards=[];
+for(let s=300;s<FULL_TRACK_END-100;s+=105+rand()*86){
+ if(FULL_CHECKPOINTS.some(c=>Math.abs(c-s)<49))continue;
+ const type=['cone','barrel','rock','barrier'][hazards.length%4];
+ const offset=(rand()<.5?-1:1)*(2.0+rand()*4.8);
+ const h={z:s,offset,type,radius:type==='barrier'?2.8:type==='rock'?2.0:1.65};
+ hazards.push(h);
+ const [x,y,z]=trackPoint(s,offset,.05);
+ if(type==='cone'){
+   terrain.cone(x,y,z,1.05,2.65,[.98,.38,.13]);
+   roadBox(terrain,s,offset,1.07,.86,.28,.82,[.97,.92,.79]);
+ }else if(type==='barrel'){
+   roadBox(terrain,s,offset,1.30,1.85,2.4,1.85,[.87,.36,.16]);
+   roadBox(terrain,s,offset,1.15,2.1,.35,2.1,[.97,.90,.69]);
+ }else if(type==='rock'){
+   terrain.cone(x,y,z,2.1,3.1,[.46,.44,.39]);
+   terrain.box(x,y+.38,z,2.4,.8,2.3,[.57,.51,.44]);
+ }else{
+   roadBox(terrain,s,offset,1.1,4.6,2.1,.85,[.96,.63,.14]);
+   for(let i=0;i<3;i++)roadBox(terrain,s,offset-1.5+i*1.5,1.13,.42,1.6,.94,[.96,.91,.72]);
+ }
+}
 // The vehicle mesh can be rebuilt with one of five selectable paint colours.
 function rebuildCarMesh(){
   if(carMesh.buf&&gl.deleteBuffer)gl.deleteBuffer(carMesh.buf);
@@ -429,14 +578,10 @@ function rebuildCarMesh(){
 terrain.compile();rebuildCarMesh();
 let customFinishArch=null;
 function rebuildFinishArch(){
-  if(customFinishArch?.buf&&gl.deleteBuffer)gl.deleteBuffer(customFinishArch.buf);
-  customFinishArch=null;
-  if(CHECKPOINTS.length===FULL_CHECKPOINTS.length)return;
-  const mesh=new Mesh(),x=roadX(TRACK_LENGTH),z=TRACK_LENGTH;
-  mesh.box(x-10,4.5,z,1.6,9,2,[.1,.22,.24]);mesh.box(x+10,4.5,z,1.6,9,2,[.1,.22,.24]);
-  mesh.box(x,9.5,z,21.3,1.8,2,[.96,.76,.28]);
-  for(let i=0;i<8;i++)mesh.box(x-8.75+i*2.5,9.6,z+1.1,2.5,1.0,.12,i%2===0?[.13,.22,.22]:[.95,.91,.73]);
-  mesh.compile();customFinishArch=mesh;
+ if(customFinishArch?.buf&&gl.deleteBuffer)gl.deleteBuffer(customFinishArch.buf);
+ customFinishArch=null;
+ if(CHECKPOINTS.length===FULL_CHECKPOINTS.length)return;
+ const mesh=new Mesh();drawFinishArch(mesh,TRACK_LENGTH);mesh.compile();customFinishArch=mesh;
 }
 function setCarPaint(id){if(!CAR_PAINTS[id])return;selectedCar=id;rebuildCarMesh();
   $('carSelectionName').textContent=CAR_PAINTS[id].name;
@@ -452,41 +597,162 @@ $('changeModeBtn').addEventListener('click',()=>{
 function perspective(fov,aspect,near,far){const f=1/Math.tan(fov/2),out=new Float32Array(16);out[0]=f/aspect;out[5]=f;out[10]=(far+near)/(near-far);out[11]=-1;out[14]=2*far*near/(near-far);return out}
 function lookAt(eye,target){const z=norm(sub(eye,target)),x=norm(cross([0,1,0],z)),y=cross(z,x);return new Float32Array([x[0],y[0],z[0],0, x[1],y[1],z[1],0, x[2],y[2],z[2],0, -dot(x,eye),-dot(y,eye),-dot(z,eye),1])}
 function multiply(a,b){const c=new Float32Array(16);for(let i=0;i<4;i++)for(let j=0;j<4;j++)for(let k=0;k<4;k++)c[i*4+j]+=a[k*4+j]*b[i*4+k];return c}
-function carModel(x,z,yaw){const c=Math.cos(yaw),s=Math.sin(yaw);return new Float32Array([c,0,-s,0,0,1,0,0,s,0,c,0,x,.13,z,1])}
+function carModel(s,lane,yaw){
+ const position=trackPoint(s,lane,.14);
+ const pitch=-Math.atan(roadGrade(s)),sp=Math.sin(pitch),cp=Math.cos(pitch);
+ const co=Math.cos(yaw),si=Math.sin(yaw);
+ return new Float32Array([
+ co,0,-si,0, si*sp,cp,co*sp,0, si*cp,-sp,co*cp,0,
+ position[0],position[1],position[2],1]);
+}
 function renderMesh(mesh,model){gl.uniformMatrix4fv(modelLoc,false,model);gl.bindBuffer(gl.ARRAY_BUFFER,mesh.buf);gl.enableVertexAttribArray(posLoc);gl.vertexAttribPointer(posLoc,3,gl.FLOAT,false,24,0);gl.enableVertexAttribArray(colorLoc);gl.vertexAttribPointer(colorLoc,3,gl.FLOAT,false,24,12);gl.drawArrays(gl.TRIANGLES,0,mesh.count)}
 let width=0,height=0;
 function resize(){const w=Math.round(canvas.clientWidth*Math.min(devicePixelRatio||1,1.65)),h=Math.round(canvas.clientHeight*Math.min(devicePixelRatio||1,1.65));if(w!==width||h!==height){width=canvas.width=w;height=canvas.height=h;gl.viewport(0,0,w,h)}}
 function renderFallback(){
-  const ctx=fallbackCtx,w=width,h=height;
-  ctx.clearRect(0,0,w,h);
-  const palette=BIOMES[biomeIndexForZ(game.z)], toCSS=(rgb)=>`rgb(${rgb.map(v=>Math.round(v*255)).join(',')})`;let sky=ctx.createLinearGradient(0,0,0,h*.7);sky.addColorStop(0,toCSS(palette.sky));sky.addColorStop(.75,toCSS(palette.hill));sky.addColorStop(1,toCSS(palette.ground));ctx.fillStyle=sky;ctx.fillRect(0,0,w,h);
-  ctx.fillStyle=toCSS(palette.hill);ctx.beginPath();ctx.moveTo(0,h*.49);for(let x=0;x<=w;x+=16){ctx.lineTo(x,h*(.41+.025*Math.sin(x*.012)+.018*Math.cos(x*.028)))}ctx.lineTo(w,h);ctx.lineTo(0,h);ctx.fill();
-  ctx.fillStyle=toCSS(palette.ground);ctx.fillRect(0,h*.47,w,h*.53);
-  const carX=roadX(game.z)+game.lane;
-  function pr(x,z,y=0){const d=z-game.z+24;let scale=h*.96/Math.max(1,d);return [w*.5+(x-carX)*scale,h*.315+(7.3-y)*scale*.77,scale]}
-  function polygon(points,color){ctx.fillStyle=color;ctx.beginPath();ctx.moveTo(points[0][0],points[0][1]);for(let i=1;i<points.length;i++)ctx.lineTo(points[i][0],points[i][1]);ctx.closePath();ctx.fill()}
-  function ribbon(z1,z2,l,r,color){polygon([pr(roadX(z1)+l,z1),pr(roadX(z1)+r,z1),pr(roadX(z2)+r,z2),pr(roadX(z2)+l,z2)],color)}
-  const zStart=Math.max(-40,game.z-22),zEnd=Math.min(TRACK_LENGTH+70,game.z+265);
-  for(let z=zEnd;z>zStart;z-=6){let zz=Math.max(z-6,zStart);const dz=BIOMES[biomeIndexForZ((zz+z)*.5)];ribbon(zz,z,-ROAD_HALF-2.2,ROAD_HALF+2.2,toCSS(dz.shoulder));ribbon(zz,z,-ROAD_HALF,ROAD_HALF,toCSS(dz.road));ribbon(zz,z,-ROAD_HALF+.42,-ROAD_HALF+.55,'#e2dda9');ribbon(zz,z,ROAD_HALF-.55,ROAD_HALF-.42,'#e2dda9');if(Math.floor(zz/13)%2===0)ribbon(zz,z,-.15,.15,'#dfdbaa')}
-  // Roadside trees and checkpoint gantries, from far to near.
-  const objects=[];for(let z=Math.floor((game.z+225)/11)*11;z>game.z-17;z-=11){for(const side of [-1,1]){const x=roadX(z)+side*(20+((Math.floor(z*17+side*29)%39+39)%39));objects.push({z,x,type:'tree'})}}
-  for(let i=0;i<CHECKPOINTS.length;i++)if(CHECKPOINTS[i]>game.z-15&&CHECKPOINTS[i]<game.z+270)objects.push({z:CHECKPOINTS[i],x:roadX(CHECKPOINTS[i]),type:'arch',i});
-  for(const hzd of hazards)if(hzd.z>game.z-14&&hzd.z<game.z+200)objects.push({z:hzd.z,x:roadX(hzd.z)+hzd.offset,type:'cone'});
-  if(TRACK_LENGTH>game.z-15&&TRACK_LENGTH<game.z+270)objects.push({z:TRACK_LENGTH,x:roadX(TRACK_LENGTH),type:'finish'});
-  objects.sort((a,b)=>b.z-a.z);
-  for(const o of objects){const [x,y,s]=pr(o.x,o.z);if(o.type==='tree'){const bz=biomeIndexForZ(o.z),decor=BIOMES[bz];if(bz===4||(bz===3&&Math.floor(o.z)%3===0)){polygon([[x-3.1*s,y+1.2*s],[x-1.6*s,y-2.8*s],[x+1.0*s,y-3.6*s],[x+3.4*s,y+1.2*s]],toCSS(decor.rock));}else{const size=4.2*s;polygon([[x-2*s,y],[x,y-size],[x+2*s,y]],toCSS(decor.foliage));polygon([[x-2.5*s,y+1*s],[x,y-size*.7],[x+2.5*s,y+s]],toCSS(bz===5?[.86,.92,.95]:decor.foliage));ctx.fillStyle=toCSS(decor.rock);ctx.fillRect(x-.3*s,y+s,.6*s,1.5*s)}}else if(o.type==='cone'){polygon([[x-.8*s,y],[x,y-1.9*s],[x+.8*s,y]],'#e57727');ctx.fillStyle='#ece8cd';ctx.fillRect(x-.5*s,y-1*s,1*s,.3*s)}else if(o.type==='arch'||o.type==='finish'){const wArch=10.2*s;ctx.strokeStyle='#205448';ctx.lineWidth=Math.max(2,1.5*s);ctx.beginPath();ctx.moveTo(x-wArch,y);ctx.lineTo(x-wArch,y-8*s);ctx.lineTo(x+wArch,y-8*s);ctx.lineTo(x+wArch,y);ctx.stroke();polygon([[x-wArch,y-8*s],[x+wArch,y-8*s],[x+wArch,y-6.6*s],[x-wArch,y-6.6*s]],o.type==='finish'?'#f5cf62':toCSS(BIOMES[biomeIndexForZ(o.z)].arch))}}
-  const cx=w*.50,cy=h*.76,sc=Math.min(2,w/1100)*Math.max(.70,h/760);ctx.save();ctx.translate(cx,cy);ctx.rotate(game.steer*.045);ctx.fillStyle='#122e31';ctx.fillRect(-47*sc,-17*sc,21*sc,75*sc);ctx.fillRect(26*sc,-17*sc,21*sc,75*sc);polygon([[-44*sc,57*sc],[-44*sc,-55*sc],[-28*sc,-78*sc],[28*sc,-78*sc],[44*sc,-55*sc],[44*sc,57*sc]],CAR_PAINTS[selectedCar].hex);polygon([[-32*sc,-22*sc],[-25*sc,-49*sc],[25*sc,-49*sc],[32*sc,-22*sc]],'#2c7280');polygon([[-33*sc,12*sc],[33*sc,12*sc],[25*sc,29*sc],[-25*sc,29*sc]],'#2b7181');ctx.fillStyle='#223a3c';ctx.fillRect(-56*sc,53*sc,112*sc,11*sc);ctx.restore();
-  ctx.fillStyle='#ffffffbb';ctx.font=`${Math.max(11,Math.round(h*.020))}px system-ui`;ctx.textAlign='center';ctx.fillText('ΑΠΕΙΚΟΝΙΣΗ ΣΥΜΒΑΤΟΤΗΤΑΣ · ΧΩΡΙΣ WEBGL',w*.5,h-18);
+ const ctx=fallbackCtx,w=width,h=height;
+ ctx.clearRect(0,0,w,h);
+ const biome=BIOMES[biomeIndexForZ(game.z)];
+ const rgb=arr=>'rgb('+arr.map(v=>Math.round(v*255)).join(',')+')';
+ const sky=ctx.createLinearGradient(0,0,0,h*.78);
+ sky.addColorStop(0,rgb(biome.sky));sky.addColorStop(.72,rgb(biome.hill));sky.addColorStop(1,rgb(biome.ground));
+ ctx.fillStyle=sky;ctx.fillRect(0,0,w,h);
+ const current=trackPoint(game.z,game.lane),angle=roadAngle(game.z),co=Math.cos(angle),si=Math.sin(angle);
+ ctx.fillStyle=rgb(biome.hill);ctx.beginPath();ctx.moveTo(0,h*.5);
+ for(let x=0;x<=w;x+=18)ctx.lineTo(x,h*(.44+.029*Math.sin(x*.012)+.024*Math.cos(x*.035)));
+ ctx.lineTo(w,h);ctx.lineTo(0,h);ctx.fill();
+ ctx.fillStyle=rgb(biome.ground);ctx.fillRect(0,h*.52,w,h*.48);
+ function pr(distance,offset=0,height=0){
+   const p=trackPoint(distance,offset,height),dx=p[0]-current[0],dz=p[2]-current[2];
+   const lateral=dx*co-dz*si,depth=distance-game.z+24;
+   const scale=h*.95/Math.max(6,depth);
+   return [w*.5+lateral*scale,h*.32+(8-(p[1]-current[1]))*scale*.78,scale];
+ }
+ function polygon(points,color){
+   ctx.fillStyle=color;ctx.beginPath();ctx.moveTo(points[0][0],points[0][1]);
+   for(let i=1;i<points.length;i++)ctx.lineTo(points[i][0],points[i][1]);
+   ctx.closePath();ctx.fill();
+ }
+ function ribbon(a,b,l,r,height,color){
+  polygon([pr(a,l,height),pr(a,r,height),pr(b,r,height),pr(b,l,height)],color);
+ }
+ const sStart=Math.max(-50,game.z-18),sEnd=Math.min(TRACK_LENGTH+80,game.z+255);
+ for(let s=sEnd;s>sStart;s-=7){
+   const a=Math.max(sStart,s-7),zone=BIOMES[biomeIndexForZ((s+a)*.5)];
+   ribbon(a,s,-ROAD_HALF-2,ROAD_HALF+2,-.13,rgb(zone.shoulder));
+   ribbon(a,s,-ROAD_HALF,ROAD_HALF,-.07,rgb(zone.road));
+   ribbon(a,s,-ROAD_HALF+.37,-ROAD_HALF+.57,-.023,'#e3d8b4');
+   ribbon(a,s,ROAD_HALF-.57,ROAD_HALF-.37,-.023,'#e3d8b4');
+   if(Math.floor(a/14)%2===0)ribbon(a,s,-.15,.15,-.013,'#f0d492');
+ }
+ const items=[];
+ for(let s=Math.floor((game.z+230)/32)*32;s>game.z-14;s-=32){
+   for(const side of [-1,1])items.push({s,offset:side*(23+(Math.floor(s/32)*19%53)),type:'tree'});
+ }
+ for(let i=0;i<CHECKPOINTS.length;i++){
+   const s=CHECKPOINTS[i];if(s>game.z-15&&s<game.z+270)items.push({s,offset:0,type:'arch'});
+ }
+ for(const event of TURN_EVENTS)for(let s=event.center-114;s<=event.center+114;s+=38)
+   if(s>game.z-14&&s<game.z+250)items.push({s,offset:(event.sign>0?-1:1)*13.5,type:'chevron'});
+ for(const hzd of hazards)if(hzd.z>game.z-14&&hzd.z<game.z+250)
+   items.push({s:hzd.z,offset:hzd.offset,type:hzd.type});
+ if(TRACK_LENGTH>game.z-15&&TRACK_LENGTH<game.z+270)items.push({s:TRACK_LENGTH,offset:0,type:'finish'});
+ items.sort((a,b)=>b.s-a.s);
+ for(const o of items){
+   const [x,y,scale]=pr(o.s,o.offset),sc=Math.max(0,scale);
+   if(o.type==='tree'){
+     const b=BIOMES[biomeIndexForZ(o.s)],tall=3.5*sc;
+     if(b===BIOMES[4]||b===BIOMES[3]){
+       polygon([[x-2.5*sc,y],[x,y-2.5*sc],[x+2.5*sc,y]],rgb(b.rock));
+     }else{
+       ctx.fillStyle='#6a5239';ctx.fillRect(x-.31*sc,y,.62*sc,1.6*sc);
+       polygon([[x-2.5*sc,y],[x,y-tall],[x+2.5*sc,y]],rgb(b.foliage));
+       polygon([[x-2.1*sc,y-1.5*sc],[x,y-4.8*sc],[x+2.1*sc,y-1.5*sc]],rgb(b.foliage));
+     }
+   }else if(o.type==='arch'||o.type==='finish'){
+     const half=10*sc;ctx.strokeStyle='#264d47';ctx.lineWidth=Math.max(1.5,1.15*sc);
+     ctx.beginPath();ctx.moveTo(x-half,y);ctx.lineTo(x-half,y-8*sc);
+     ctx.lineTo(x+half,y-8*sc);ctx.lineTo(x+half,y);ctx.stroke();
+     polygon([[x-half,y-8.5*sc],[x+half,y-8.5*sc],[x+half,y-7*sc],[x-half,y-7*sc]],
+       o.type==='finish'?'#f6c963':rgb(BIOMES[biomeIndexForZ(o.s)].arch));
+   }else if(o.type==='chevron'){
+     ctx.fillStyle='#806348';ctx.fillRect(x-.18*sc,y-4*sc,.36*sc,4*sc);
+     polygon([[x-1.5*sc,y-4.4*sc],[x+1.5*sc,y-4.4*sc],[x+1.5*sc,y-3*sc],[x-1.5*sc,y-3*sc]],'#eaba36');
+   }else if(o.type==='cone'){
+     polygon([[x-.9*sc,y],[x,y-2.5*sc],[x+.9*sc,y]],'#ee691a');
+   }else if(o.type==='rock'){
+     polygon([[x-2*sc,y],[x-1.4*sc,y-2.6*sc],[x+1.4*sc,y-3*sc],[x+2*sc,y]],'#78756a');
+   }else{
+     const bw=o.type==='barrier'?4.4:2;
+     polygon([[x-bw*.5*sc,y],[x-bw*.5*sc,y-2.2*sc],[x+bw*.5*sc,y-2.2*sc],[x+bw*.5*sc,y]],'#dc8124');
+   }
+ }
+ // The car follows the banking and displays the chosen paint colour.
+ const cx=w*.5,cy=h*.78,sc=Math.min(2,w/1100)*Math.max(.7,h/760);
+ ctx.save();ctx.translate(cx,cy);ctx.rotate(game.steer*.055);
+ ctx.fillStyle='#162e32';ctx.fillRect(-45*sc,-16*sc,20*sc,73*sc);ctx.fillRect(25*sc,-16*sc,20*sc,73*sc);
+ polygon([[-43*sc,55*sc],[-43*sc,-58*sc],[-28*sc,-78*sc],[28*sc,-78*sc],[43*sc,-58*sc],[43*sc,55*sc]],CAR_PAINTS[selectedCar].hex);
+ polygon([[-32*sc,-20*sc],[-25*sc,-50*sc],[25*sc,-50*sc],[32*sc,-20*sc]],'#316b79');
+ polygon([[-33*sc,10*sc],[33*sc,10*sc],[25*sc,29*sc],[-25*sc,29*sc]],'#2b7181');
+ ctx.restore();
+ ctx.fillStyle='#ffffffbd';ctx.textAlign='center';ctx.font='12px system-ui';
+ ctx.fillText('ΑΠΕΙΚΟΝΙΣΗ ΣΥΜΒΑΤΟΤΗΤΑΣ · ΧΩΡΙΣ WEBGL',w*.5,h-16);
 }
-function render(){resize();if(fallbackCtx){renderFallback();return}const road=roadX(game.z),x=road+game.lane,dr=roadSlope(game.z),yaw=Math.atan(dr)+game.steer*.09+game.laneSpeed*.012;const eye=[x-2.2,8.3,game.z-19.4],look=[roadX(game.z+32)*.70+x*.30,1.35,game.z+22];const vp=multiply(perspective(Math.PI/3.17,width/height,.15,550),lookAt(eye,look));const zone=BIOMES[biomeIndexForZ(game.z)];gl.clearColor(...zone.sky,1);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);gl.enable(gl.DEPTH_TEST);gl.disable(gl.CULL_FACE);gl.useProgram(program);gl.uniformMatrix4fv(vpLoc,false,vp);gl.uniform3f(eyeLoc,...eye);gl.uniform3f(fogLoc,...zone.sky);renderMesh(terrain,ID);if(customFinishArch)renderMesh(customFinishArch,ID);renderMesh(carMesh,carModel(x,game.z,yaw))}
-function update(dt){if(game.mode!=='playing')return;const up=!!keys.ArrowUp,down=!!keys.ArrowDown,left=!!keys.ArrowLeft,right=!!keys.ArrowRight;const targetSteer=(right?1:0)-(left?1:0);game.steer+=(targetSteer-game.steer)*Math.min(1,dt*7);
-const off=Math.abs(game.lane)>ROAD_HALF-1.45;let acceleration=up?25:(down?-36:(-4.2-game.speed*.060));if(up&&down)acceleration=-36;if(off&&game.speed>15)acceleration-=23;game.speed=Math.max(0,Math.min(51,game.speed+acceleration*dt));
-// Steering is meaningful: lateral velocity has inertia and can move the car beyond the road edge.
-const desiredSide=game.steer*game.speed*.44;game.laneSpeed+=(desiredSide-game.laneSpeed)*Math.min(1,dt*3.9);game.lane+=game.laneSpeed*dt;const maxLane=ROAD_HALF+1.9;if(game.lane>maxLane||game.lane<-maxLane){game.lane=Math.max(-maxLane,Math.min(maxLane,game.lane));game.speed*=.70;game.laneSpeed=0;game.score=Math.max(0,game.score-5);notify('Εκτός δρόμου: μείωση ταχύτητας!')}
-const previous=game.z;game.z+=game.speed*dt;
-for(let i=0;i<hazards.length;i++){const h=hazards[i];if(!game.hits.has(i)&&Math.abs(game.z-h.z)<2.4&&Math.abs(game.lane-h.offset)<2.15){game.hits.add(i);game.speed*=.40;game.score=Math.max(0,game.score-20);game.crashes++;notify('Χτύπησες κώνο: −20 βαθμοί')}}
-if(game.station<CHECKPOINTS.length&&previous<CHECKPOINTS[game.station]&&game.z>=CHECKPOINTS[game.station]){game.z=CHECKPOINTS[game.station];updateHUD();beginQuiz();return}
-if(game.z>=TRACK_LENGTH){game.z=TRACK_LENGTH;updateHUD();endGame();return}updateHUD()}
+function render(){
+ resize();
+ if(fallbackCtx){renderFallback();return;}
+ const s=game.z,angle=roadAngle(s),pos=trackPoint(s,game.lane);
+ const eye=[pos[0]-Math.sin(angle)*24-Math.cos(angle)*1.7,pos[1]+9.4,
+            pos[2]-Math.cos(angle)*24+Math.sin(angle)*1.7];
+ const forward=trackPoint(Math.min(s+34,FULL_TRACK_END+80),0,1.75);
+ const vp=multiply(perspective(Math.PI/3.12,width/height,.15,700),lookAt(eye,forward));
+ const zone=BIOMES[biomeIndexForZ(s)],yaw=angle+game.steer*.10+game.laneSpeed*.009;
+ gl.clearColor(...zone.sky,1);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
+ gl.enable(gl.DEPTH_TEST);gl.disable(gl.CULL_FACE);gl.useProgram(program);
+ gl.uniformMatrix4fv(vpLoc,false,vp);gl.uniform3f(eyeLoc,...eye);gl.uniform3f(fogLoc,...zone.sky);
+ renderMesh(terrain,ID);
+ if(customFinishArch)renderMesh(customFinishArch,ID);
+ renderMesh(carMesh,carModel(s,game.lane,yaw));
+}
+function update(dt){
+ if(game.mode!=='playing')return;
+ const up=!!keys.ArrowUp,down=!!keys.ArrowDown,left=!!keys.ArrowLeft,right=!!keys.ArrowRight;
+ const targetSteer=(right?1:0)-(left?1:0);
+ game.steer+=(targetSteer-game.steer)*Math.min(1,dt*7.2);
+ const grade=roadGrade(game.z),curvature=roadCurvature(game.z);
+ const off=Math.abs(game.lane)>ROAD_HALF-1.25;
+ let acceleration=up?25:down?-38:-4.7-game.speed*.060;
+ if(up&&down)acceleration=-38;
+ // More throttle is required climbing hills, gravity helps on descents.
+ acceleration-=grade*56;
+ if(off&&game.speed>14)acceleration-=24;
+ game.speed=Math.max(0,Math.min(54,game.speed+acceleration*dt));
+ const outward=-curvature*game.speed*game.speed*.28;
+ const desiredSide=game.steer*game.speed*.46+outward;
+ game.laneSpeed+=(desiredSide-game.laneSpeed)*Math.min(1,dt*3.5);
+ game.lane+=game.laneSpeed*dt;
+ const limit=ROAD_HALF+1.3;
+ if(Math.abs(game.lane)>limit){
+   game.lane=Math.max(-limit,Math.min(limit,game.lane));
+   game.speed*=.72;game.laneSpeed=0;
+   game.score=Math.max(0,game.score-8);
+   notify('Εκτός δρόμου: μείωσε ταχύτητα στις στροφές!');
+ }
+ const previous=game.z;
+ game.z+=game.speed*dt;
+ for(let i=0;i<hazards.length;i++){
+   const h=hazards[i];
+   if(!game.hits.has(i)&&previous<h.z+2.6&&game.z>=h.z-2.6&&Math.abs(game.lane-h.offset)<h.radius+1){
+     game.hits.add(i);game.speed*=h.type==='barrier'?.29:.48;
+     game.score=Math.max(0,game.score-(h.type==='barrier'?35:20));game.crashes++;
+     notify(h.type==='barrier'?'Πρόσκρουση σε οδόφραγμα: −35 βαθμοί':'Πρόσκρουση σε εμπόδιο: −20 βαθμοί');
+   }
+ }
+ if(game.station<CHECKPOINTS.length&&previous<CHECKPOINTS[game.station]&&game.z>=CHECKPOINTS[game.station]){
+   game.z=CHECKPOINTS[game.station];updateHUD();beginQuiz();return;
+ }
+ if(game.z>=TRACK_LENGTH){game.z=TRACK_LENGTH;updateHUD();endGame();return;}
+ updateHUD();
+}
 let last=performance.now();function frame(now){const dt=Math.min(Math.max((now-last)/1000,0),.045);last=now;accountTime(now);update(dt);if(game.mode==='quiz'||game.mode==='pause')updateClockHUD();render();requestAnimationFrame(frame)}
 updateHUD();requestAnimationFrame(frame);
 })();

@@ -1,0 +1,22 @@
+name: Validate proposed changes
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate JavaScript, question bank, author modes and terrain
+        run: python3 tests/validate.py
+      - name: Validate release metadata
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          version=Path("VERSION").read_text().strip()
+          assert Path(f"RELEASE_NOTES_v{version}.md").is_file()
+          print("Release:",version)
+          PY

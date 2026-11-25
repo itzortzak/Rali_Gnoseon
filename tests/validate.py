@@ -13,7 +13,7 @@ assert len({q['id'] for q in bank})==170
 assert sum(q['author']=='Θουκυδίδης' for q in bank)==95
 assert sum(q['author']=='Ξενοφώντας' for q in bank)==75
 assert all(2<=len(q['options'])<=8 and 0<=q['answer']<len(q['options']) for q in bank)
-for k in ['Array.from({length:68}', 'STOP_SPACING=120', 'id="reviewToggle"', 'id="reviewWrong"', 'id="reviewAll"', 'id="finalDrivingTime"', 'selectedIndex:i', 'function shuffledQuestions()', 'questions=shuffledQuestions()', 'questionTime', 'pauseTime', 'elapsedTime', 'id="finalQuestionTime"', 'id="finalPauseTime"', 'id="questionClock"', 'id="pauseClock"', 'data-mode="both"', 'data-mode="thucydides"', 'data-mode="xenophon"', 'function setQuestionMode(mode)', 'function questionPoolForMode(mode)', 'function rebuildFinishArch()', 'id="introStations"', 'id="introQuestions"']:
+for k in ['Array.from({length:68}', 'STOP_SPACING=360', 'id="reviewToggle"', 'id="reviewWrong"', 'id="reviewAll"', 'id="finalDrivingTime"', 'selectedIndex:i', 'function shuffledQuestions()', 'questions=shuffledQuestions()', 'questionTime', 'pauseTime', 'elapsedTime', 'id="finalQuestionTime"', 'id="finalPauseTime"', 'id="questionClock"', 'id="pauseClock"', 'data-mode="both"', 'data-mode="thucydides"', 'data-mode="xenophon"', 'function setQuestionMode(mode)', 'function questionPoolForMode(mode)', 'function rebuildFinishArch()', 'id="introStations"', 'id="introQuestions"', 'function roadAngle(s)', 'function roadElevation(s)', 'function roadCurvature(s)', 'function pathCenter(distance)', 'function trackPoint(s,offset=0,height=0)', 'function roadBox(mesh,s,offset,height,w,h,d,col)', 'function drawFinishArch(mesh,s)', 'const hazards=[]', 'const type=[', 'id="roadAlert"', 'const outward=-curvature*game.speed*game.speed*.28']:
     assert k in html, f"Missing {k}"
 scripts=re.findall(r'<script>(.+?)</script>',html,re.S)
 assert scripts
@@ -34,15 +34,40 @@ assert pure_func, "Question pool selector not found"
 mode_code='const originalQuestions='+json.dumps([{'id':q['id'],'author':q['author']} for q in bank],ensure_ascii=False)+';\n'
 mode_code+="const MODE_AUTHORS={thucydides:'Θουκυδίδης',xenophon:'Ξενοφώντας'};\n"
 mode_code+=pure_func.group(0)+"\n"
-mode_code+="const expected={thucydides:[95,38,4680],xenophon:[75,30,3720],both:[170,68,8400]};\n"
+mode_code+="const expected={thucydides:[95,38,13700],xenophon:[75,30,10820],both:[170,68,24680]};\n"
 mode_code+="""
 for(const [mode,[count,stops,distance]] of Object.entries(expected)){
  const pool=questionPoolForMode(mode);
  if(pool.length!==count||new Set(pool.map(q=>q.id)).size!==count)process.exit(2);
  const stationCount=pool.length/5*2;
- const track=150+(stationCount-1)*120+(mode==='both'?210:90);
+ const track=240+(stationCount-1)*360+(mode==='both'?320:140);
  if(stationCount!==stops||track!==distance)process.exit(3);
 }
 """
 subprocess.run(['node','-e',mode_code],check=True)
-print('Validated v3.4: syntax, 170 unique source IDs, 95/75/170 selectable questions, 38/30/68 checkpoints and shuffling.')
+# Execute the actual route algorithm (extracted from the HTML) in Node.
+route = re.search(r'// ROUTE_GEOMETRY_BEGIN(.*?)// ROUTE_GEOMETRY_END',scripts[-1],re.S)
+assert route, "Parametric route geometry not found"
+route_js = "const FULL_CHECKPOINTS=Array.from({length:68},(_,i)=>240+i*360);\n"+route.group(1)+"\n"
+route_js += """
+for(const s of [0,100,2100,2800,6900,13000,24000,24680]){
+ const p=pathCenter(s),q=trackPoint(s,0);
+ if(![p.x,p.z,q[0],q[1],q[2],roadAngle(s),roadGrade(s),roadCurvature(s)].every(Number.isFinite))process.exit(11);
+ if(Math.abs(p.x-q[0])>1e-8||Math.abs(p.z-q[2])>1e-8)process.exit(12);
+}
+for(const turn of TURN_EVENTS){
+ const delta=roadAngle(turn.center+120)-roadAngle(turn.center-120);
+ if(!(Math.abs(delta)>1.95&&Math.abs(delta)<4.2))process.exit(13);
+}
+let backward=0,up=false,down=false;
+for(let s=150;s<24640;s+=16){
+ if(roadZ(s+8)<roadZ(s-8))backward++;
+ if(roadGrade(s)>.065)up=true;
+ if(roadGrade(s)<-.065)down=true;
+}
+if(backward<150||!up||!down||TURN_EVENTS.length<8)process.exit(14);
+if(PATH_POSITIONS.length<6100)process.exit(15);
+"""
+subprocess.run(['node','-e',route_js],check=True)
+subprocess.run(['node',str(p/'tests/smoke_game.cjs')],check=True)
+print('Validated v3.5: syntax, question modes, 360m stops, mountain grades and genuine 180-degree hairpins.')
