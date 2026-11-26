@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#10262a">
-<title>Ράλι Γνώσεων 3D v4.1 — Αρχαία Ελληνικά Α΄ Λυκείου</title>
+<title>Ράλι Γνώσεων 3D v4.2 — Αρχαία Ελληνικά Α΄ Λυκείου</title>
 <style>
 :root { --dark:#10262a; --dark2:#173438; --ink:#163038; --mint:#b3e6c7; --gold:#f6cc62; --cream:#f5f3ea; --line:#dbe4dc; --muted:#627677; --red:#b44a36; }
 *{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:system-ui,-apple-system,"Segoe UI",Arial,sans-serif;background:#eef2ed;color:var(--ink)}
@@ -100,11 +100,23 @@ button,input{font:inherit}button{cursor:pointer}button:disabled{opacity:.5;curso
 @media(max-width:600px){.road-alert{right:9px;top:116px;font-size:10px;max-width:152px;padding:7px 9px}}
 .steer-indicator{margin-top:5px;color:#cee9da;font-size:11px;font-weight:650}
 .steer-indicator.offroad{color:#ffd58c}
+
+.driving-picker{padding:11px 12px;margin:8px 0 12px;background:#edf3f5;border:1px solid #cbdfe1;border-radius:12px}
+.driving-picker .car-picker-title{margin-bottom:8px}
+.driving-choices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.driving-choice{display:flex;flex-direction:column;gap:4px;justify-content:center;align-items:center;text-align:center;min-height:70px;padding:10px 9px;background:#fff;border:1.5px solid #c6d6d2;border-radius:10px;color:#20453e}
+.driving-choice b{font-size:13px}.driving-choice span{font-size:11px;color:#557066;line-height:1.35}
+.driving-choice.selected{background:#e3f2eb;border-color:#247151;box-shadow:inset 0 0 0 1px #247151}
+.driving-choice:focus-visible,.switch-drive:focus-visible{outline:3px solid #f5c95f;outline-offset:2px}
+.switch-drive{display:block;margin-top:8px;border:1px solid #9bc9b0;border-radius:8px;background:#2b6954;color:white;padding:7px 12px;font-size:11px;font-weight:750;cursor:pointer;pointer-events:auto}
+.switch-drive:hover{background:#397c65}
+.stage.auto-mode .controls{display:none!important}
+@media(max-width:600px){.driving-choice{padding:9px 6px;min-height:72px}.driving-choice b{font-size:12px}.driving-choice span{font-size:10px}.switch-drive{font-size:10px}}
 </style>
 </head>
 <body>
 <div class="page">
-  <div class="masthead"><div class="brand"><div class="brandmark">R↗</div><div><strong>ΡΑΛΙ ΓΝΩΣΕΩΝ <span style="color:#36755d">3D</span></strong><small>ΑΡΧΑΙΑ ΕΛΛΗΝΙΚΑ · Α΄ ΛΥΚΕΙΟΥ</small></div></div><span class="chip">ΤΡΑΠΕΖΑ ΘΕΜΑΤΩΝ · v4.1</span></div>
+  <div class="masthead"><div class="brand"><div class="brandmark">R↗</div><div><strong>ΡΑΛΙ ΓΝΩΣΕΩΝ <span style="color:#36755d">3D</span></strong><small>ΑΡΧΑΙΑ ΕΛΛΗΝΙΚΑ · Α΄ ΛΥΚΕΙΟΥ</small></div></div><span class="chip">ΤΡΑΠΕΖΑ ΘΕΜΑΤΩΝ · v4.2</span></div>
   <main class="stage" id="stage">
     <canvas id="world" aria-label="Τρισδιάστατη πίστα ράλι" tabindex="0"></canvas>
     <div class="topbar">
@@ -116,8 +128,8 @@ button,input{font:inherit}button{cursor:pointer}button:disabled{opacity:.5;curso
       <div class="metric wide"><span>ΣΤΑΣΕΙΣ · ΑΠΑΝΤΗΣΕΙΣ</span><strong id="stationCount">0 / 68</strong><em id="answeredCount">0 / 170</em></div>
     </div>
     <div class="toast" id="toast" role="status"></div><div class="road-alert" id="roadAlert" aria-live="off" hidden></div>
-    <div class="routebar"><div class="routebar-title"><span id="routeText">Θουκυδίδης & Ξενοφώντας</span><b id="distanceText">0 / 24.680 m</b></div><div class="track"><div id="progress"></div></div><div class="zone-indicator" id="biomeLabel">ΖΩΝΗ 1/7 · Πράσινοι λόφοι</div><div class="steer-indicator" id="steerStatus">Τιμόνι: ευθεία · Χειροκίνητη οδήγηση</div></div>
-    <div class="helpbar">↑ / W Γκάζι · ↓ / S Φρένο · ← / A Αριστερά · → / D Δεξιά · R Επαναφορά · P Παύση</div>
+    <div class="routebar"><div class="routebar-title"><span id="routeText">Θουκυδίδης & Ξενοφώντας</span><b id="distanceText">0 / 24.680 m</b></div><div class="track"><div id="progress"></div></div><div class="zone-indicator" id="biomeLabel">ΖΩΝΗ 1/7 · Πράσινοι λόφοι</div><div class="steer-indicator" id="steerStatus">Τιμόνι: ευθεία · Χειροκίνητη οδήγηση</div><button type="button" class="switch-drive" id="switchDriveBtn" aria-label="Μετάβαση σε αυτόματη οδήγηση" title="Αλλαγή τρόπου οδήγησης">ΑΥΤΟΜΑΤΗ ΟΔΗΓΗΣΗ</button></div>
+    <div class="helpbar" id="driveHelp">↑ / W Γκάζι · ↓ / S Φρένο · ← / A Αριστερά · → / D Δεξιά · R Επαναφορά · P Παύση</div>
     <div class="controls" id="touchControls" aria-label="Χειριστήρια αφής"><div class="pad"><button class="ctrl" data-key="ArrowLeft" aria-label="Αριστερά">←</button><button class="ctrl" data-key="ArrowRight" aria-label="Δεξιά">→</button></div><div class="pedals"><button class="ctrl" data-key="ArrowDown" aria-label="Φρένο">ΦΡΕΝΟ</button><button class="ctrl gas" data-key="ArrowUp" aria-label="Γκάζι">ΓΚΑΖΙ</button><button class="ctrl" id="recoverTouch" aria-label="Επαναφορά στον δρόμο, πλήκτρο R">↺ R</button></div></div>
     <section class="layer" id="introLayer" aria-label="Έναρξη παιχνιδιού">
       <div class="dialog intro">
@@ -130,6 +142,13 @@ button,input{font:inherit}button{cursor:pointer}button:disabled{opacity:.5;curso
     <button type="button" class="topic-choice" data-mode="thucydides" aria-pressed="false"><b>Θουκυδίδης</b><span>95 ερωτήσεις</span></button>
     <button type="button" class="topic-choice" data-mode="xenophon" aria-pressed="false"><b>Ξενοφώντας</b><span>75 ερωτήσεις</span></button>
     <button type="button" class="topic-choice selected" data-mode="both" aria-pressed="true"><b>Και οι δύο</b><span>170 ερωτήσεις</span></button>
+  </div>
+</div>
+<div class="driving-picker" role="group" aria-label="Επιλογή τρόπου οδήγησης">
+  <div class="car-picker-title">ΤΡΟΠΟΣ ΟΔΗΓΗΣΗΣ</div>
+  <div class="driving-choices">
+    <button type="button" class="driving-choice selected" data-drive="manual" aria-pressed="true"><b>Χειροκίνητη</b><span>Οδηγείς με βέλη ή W/A/S/D</span></button>
+    <button type="button" class="driving-choice" data-drive="auto" aria-pressed="false"><b>Αυτόματη</b><span>Το αυτοκίνητο οδηγεί μόνο του · απαντάς στις ερωτήσεις</span></button>
   </div>
 </div>
 <div class="highlights"><div class="hi"><strong id="introStations">68</strong><span>Στάσεις γνώσεων</span></div><div class="hi"><strong id="introQuestions">170</strong><span>Επιμέρους ερωτήσεις</span></div><div class="hi"><strong id="introZones">7</strong><span>Διαφορετικές ζώνες τοπίου</span></div></div>
@@ -206,7 +225,46 @@ let CHECKPOINTS=FULL_CHECKPOINTS.slice();
 let TRACK_LENGTH=CHECKPOINTS[CHECKPOINTS.length-1]+320;
 let QUESTIONS_PER_STOP=CHECKPOINTS.map((_,i)=>i%2===0?2:3);
 let selectedMode='both';
+let selectedDriveMode='manual';
 const MODE_AUTHORS={thucydides:'Θουκυδίδης',xenophon:'Ξενοφώντας'};
+function updateDriveModeUI(){
+ const mode=game.mode==='intro'?selectedDriveMode:game.driveMode;
+ for(const button of document.querySelectorAll('[data-drive]')){
+   const active=button.dataset.drive===mode;
+   button.classList.toggle('selected',active);
+   button.setAttribute('aria-pressed',String(active));
+ }
+ const auto=mode==='auto';
+ $('stage').classList.toggle('auto-mode',auto);
+ $('switchDriveBtn').textContent=auto?'ΧΕΙΡΟΚΙΝΗΤΗ ΟΔΗΓΗΣΗ':'ΑΥΤΟΜΑΤΗ ΟΔΗΓΗΣΗ';
+ $('switchDriveBtn').setAttribute('aria-label',auto?'Μετάβαση σε χειροκίνητη οδήγηση':'Μετάβαση σε αυτόματη οδήγηση');
+ $('driveHelp').textContent=auto
+  ?'Αυτόματη οδήγηση · Το όχημα σταματά στις ερωτήσεις · P Παύση'
+  :'↑ / W Γκάζι · ↓ / S Φρένο · ← / A Αριστερά · → / D Δεξιά · R Επαναφορά · P Παύση';
+}
+function setDrivingMode(mode){
+ if(!['manual','auto'].includes(mode))return;
+ if(game.mode==='intro'){
+   selectedDriveMode=mode;
+ }else if(game.mode==='playing'||game.mode==='pause'){
+   if(game.driveMode===mode)return;
+   game.driveMode=mode;
+   selectedDriveMode=mode;
+   Object.keys(keys).forEach(k=>keys[k]=false);
+   if(mode==='auto'){
+     // Align ONCE when the learner requests assistance. No score or quiz changes.
+     const s=game.z;
+     placeCarOnRoad(s,0);
+   }else{
+     // Hand over a manageable speed on a straight-aligned trajectory.
+     game.speed=Math.min(game.speed,13);
+     game.steer=0;
+   }
+   notify(mode==='auto'?'Αυτόματη οδήγηση: συγκεντρώσου στις ερωτήσεις!':'Χειροκίνητη οδήγηση: έλεγξε το τιμόνι και το γκάζι.');
+ }else return;
+ updateDriveModeUI();
+ updateHUD();
+}
 function questionPoolForMode(mode){
   return originalQuestions.filter(q=>mode==='both'||q.author===MODE_AUTHORS[mode]);
 }
