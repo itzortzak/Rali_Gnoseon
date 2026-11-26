@@ -13,7 +13,8 @@ script=script.replace('updateHUD();requestAnimationFrame(frame);',`
   setQuestionMode,startGame,beginQuiz,answerQuestion,advanceQuestion,endGame,
   trackLength:()=>TRACK_LENGTH,roadAngle,roadGrade,roadZ,roadElevation,render,
   sceneryRoots,scenerySurfaceHeight,GROUND_Y,hazards,TURN_EVENTS,difficultyAt,
-  keys,update,nearestRoadPose,placeCarOnRoad,recoverCar,trackPoint};
+  keys,update,nearestRoadPose,placeCarOnRoad,recoverCar,enforceSafetyRails,trackPoint,
+  ROAD_HALF,MAX_SAFE_OFFSET,RAIL_OFFSET};
  updateHUD();requestAnimationFrame(frame);`);
 function createElement(){
  const obj={children:[],textContent:'',innerHTML:'',style:{},dataset:{},hidden:false,disabled:false};
@@ -140,14 +141,40 @@ assert(Math.abs(straightDrive.dx)<1.5&&Math.abs(straightDrive.deltaHeading)<.001
  'No steering must preserve world heading rather than automatically turning with road');
 console.log('Manual controls: idle',stationary,'right',rightDrive,'left',leftDrive,'straight',straightDrive);
 
-// Steering is necessary to take a hairpin. Keeping the car heading straight
-// eventually leads off road and triggers a visible recovery, not auto-follow.
+// The rails must be solid on BOTH sides in straight sections and hairpins.
+assert.equal(api.MAX_SAFE_OFFSET,api.ROAD_HALF-1.25-.35);
+for(const station of [120,1200,3300,7620,12300,21500]){
+ for(const side of [-1,1]){
+  api.game.mode='intro';api.startGame();
+  api.game.station=api.checkpoints().length; // isolate physics from quiz triggers
+  api.placeCarOnRoad(station,side*(api.MAX_SAFE_OFFSET-.65));
+  const headingBefore=api.roadAngle(station)+side*.92;
+  api.game.heading=headingBefore;api.game.speed=24;api.keys.ArrowUp=true;
+  let maxLane=0;
+  for(let step=0;step<120;step++){
+   api.update(.045);
+   maxLane=Math.max(maxLane,Math.abs(api.game.lane));
+   assert(Math.abs(api.game.lane)<=api.MAX_SAFE_OFFSET+1e-5,
+    'Car left road past '+side+' rail at '+station+'m');
+  }
+  assert(api.game.railHits>0,'Rail collision not registered');
+  assert.equal(api.game.recoveries,0,'Guardrail should protect without teleporting car');
+  assert(maxLane>=api.MAX_SAFE_OFFSET-.01,'Car never reached visible rail');
+  // The barrier must not steer on its own or follow the road like an autopilot.
+  assert(Math.abs(api.game.heading-headingBefore)<1e-8,'Guardrail automatically steered the car');
+  Object.keys(api.keys).forEach(k=>api.keys[k]=false);
+ }
+}
+// The same protection must work at a hairpin without driver steering.
 api.game.mode='intro';api.startGame();api.game.station=api.checkpoints().length;
 api.placeCarOnRoad(3300);api.keys.ArrowUp=true;
-for(let i=0;i<140;i++)api.update(.045);
-assert(api.game.recoveries>0||Math.abs(api.game.lane)>9.2,
- 'Hairpin followed without any steering: hidden autopilot still exists');
+for(let i=0;i<140;i++){
+ api.update(.045);
+ assert(Math.abs(api.game.lane)<=api.MAX_SAFE_OFFSET+1e-5,'Car escaped at hairpin');
+}
+assert(api.game.railHits>0,'Auto-following the hairpin instead of hitting the rail');
 for(const key of Object.keys(api.keys))api.keys[key]=false;
+
 
 // Collision damage must require spatial proximity, not merely route progress.
 api.game.mode='intro';api.startGame();
