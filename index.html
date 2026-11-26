@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#10262a">
-<title>Ράλι Γνώσεων 3D v4.0 — Αρχαία Ελληνικά Α΄ Λυκείου</title>
+<title>Ράλι Γνώσεων 3D v4.1 — Αρχαία Ελληνικά Α΄ Λυκείου</title>
 <style>
 :root { --dark:#10262a; --dark2:#173438; --ink:#163038; --mint:#b3e6c7; --gold:#f6cc62; --cream:#f5f3ea; --line:#dbe4dc; --muted:#627677; --red:#b44a36; }
 *{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:system-ui,-apple-system,"Segoe UI",Arial,sans-serif;background:#eef2ed;color:var(--ink)}
@@ -104,7 +104,7 @@ button,input{font:inherit}button{cursor:pointer}button:disabled{opacity:.5;curso
 </head>
 <body>
 <div class="page">
-  <div class="masthead"><div class="brand"><div class="brandmark">R↗</div><div><strong>ΡΑΛΙ ΓΝΩΣΕΩΝ <span style="color:#36755d">3D</span></strong><small>ΑΡΧΑΙΑ ΕΛΛΗΝΙΚΑ · Α΄ ΛΥΚΕΙΟΥ</small></div></div><span class="chip">ΤΡΑΠΕΖΑ ΘΕΜΑΤΩΝ · v4.0</span></div>
+  <div class="masthead"><div class="brand"><div class="brandmark">R↗</div><div><strong>ΡΑΛΙ ΓΝΩΣΕΩΝ <span style="color:#36755d">3D</span></strong><small>ΑΡΧΑΙΑ ΕΛΛΗΝΙΚΑ · Α΄ ΛΥΚΕΙΟΥ</small></div></div><span class="chip">ΤΡΑΠΕΖΑ ΘΕΜΑΤΩΝ · v4.1</span></div>
   <main class="stage" id="stage">
     <canvas id="world" aria-label="Τρισδιάστατη πίστα ράλι" tabindex="0"></canvas>
     <div class="topbar">
@@ -118,7 +118,7 @@ button,input{font:inherit}button{cursor:pointer}button:disabled{opacity:.5;curso
     <div class="toast" id="toast" role="status"></div><div class="road-alert" id="roadAlert" aria-live="off" hidden></div>
     <div class="routebar"><div class="routebar-title"><span id="routeText">Θουκυδίδης & Ξενοφώντας</span><b id="distanceText">0 / 24.680 m</b></div><div class="track"><div id="progress"></div></div><div class="zone-indicator" id="biomeLabel">ΖΩΝΗ 1/7 · Πράσινοι λόφοι</div><div class="steer-indicator" id="steerStatus">Τιμόνι: ευθεία · Χειροκίνητη οδήγηση</div></div>
     <div class="helpbar">↑ / W Γκάζι · ↓ / S Φρένο · ← / A Αριστερά · → / D Δεξιά · R Επαναφορά · P Παύση</div>
-    <div class="controls" id="touchControls" aria-label="Χειριστήρια αφής"><div class="pad"><button class="ctrl" data-key="ArrowLeft" aria-label="Αριστερά">←</button><button class="ctrl" data-key="ArrowRight" aria-label="Δεξιά">→</button></div><div class="pedals"><button class="ctrl" data-key="ArrowDown" aria-label="Φρένο">ΦΡΕΝΟ</button><button class="ctrl gas" data-key="ArrowUp" aria-label="Γκάζι">ΓΚΑΖΙ</button><button class="ctrl" id="recoverTouch" aria-label="Επαναφορά στον δρόμο">↺</button></div></div>
+    <div class="controls" id="touchControls" aria-label="Χειριστήρια αφής"><div class="pad"><button class="ctrl" data-key="ArrowLeft" aria-label="Αριστερά">←</button><button class="ctrl" data-key="ArrowRight" aria-label="Δεξιά">→</button></div><div class="pedals"><button class="ctrl" data-key="ArrowDown" aria-label="Φρένο">ΦΡΕΝΟ</button><button class="ctrl gas" data-key="ArrowUp" aria-label="Γκάζι">ΓΚΑΖΙ</button><button class="ctrl" id="recoverTouch" aria-label="Επαναφορά στον δρόμο, πλήκτρο R">↺ R</button></div></div>
     <section class="layer" id="introLayer" aria-label="Έναρξη παιχνιδιού">
       <div class="dialog intro">
         <div class="eyebrow">ΜΑΘΗΣΗ ΣΕ ΚΙΝΗΣΗ · 3D WEBGL</div>
@@ -134,7 +134,7 @@ button,input{font:inherit}button{cursor:pointer}button:disabled{opacity:.5;curso
 </div>
 <div class="highlights"><div class="hi"><strong id="introStations">68</strong><span>Στάσεις γνώσεων</span></div><div class="hi"><strong id="introQuestions">170</strong><span>Επιμέρους ερωτήσεις</span></div><div class="hi"><strong id="introZones">7</strong><span>Διαφορετικές ζώνες τοπίου</span></div></div>
 <p class="small-note">Σε κάθε νέο αγώνα οι ερωτήσεις της επιλεγμένης ενότητας εμφανίζονται με νέα τυχαία σειρά.</p>
-        <p style="margin-bottom:13px"><b>Χειρισμός:</b> ↑ ή W γκάζι, ↓ ή S φρένο, ← / → ή A / D τιμόνι. P παύση. Οδήγησε εσύ το αυτοκίνητο: ↑ ή W για γκάζι, ← ή A για αριστερά, → ή D για δεξιά, ↓ ή S για φρένο. Το αυτοκίνητο δεν ακολουθεί αυτόματα τον δρόμο. Προστατευτικά κιγκλιδώματα σε όλη τη διαδρομή εμποδίζουν την πτώση εκτός πίστας. Αν ακουμπήσεις το όριο, στρίψε προς το κέντρο για να συνεχίσεις. Το R παραμένει διαθέσιμο για επαναφορά.</p>
+        <p style="margin-bottom:13px"><b>Χειρισμός:</b> ↑ ή W γκάζι, ↓ ή S φρένο, ← / → ή A / D τιμόνι. P παύση. Οδήγησε εσύ το αυτοκίνητο: ↑ ή W για γκάζι, ← ή A για αριστερά, → ή D για δεξιά, ↓ ή S για φρένο. Το αυτοκίνητο δεν ακολουθεί αυτόματα τον δρόμο. Προστατευτικά κιγκλιδώματα εμποδίζουν την πτώση εκτός πίστας. Αν κολλήσεις στο όριο, μπορείς να στρίψεις το τιμόνι ακόμη και όταν το αυτοκίνητο έχει ακινητοποιηθεί. Πάτησε γκάζι μόλις στραφεί προς το εσωτερικό ή R για επαναφορά κοντά στη θέση σου.</p>
         <div class="car-picker"><div class="car-picker-title">ΕΠΙΛΟΓΗ ΧΡΩΜΑΤΟΣ ΑΥΤΟΚΙΝΗΤΟΥ <span id="carSelectionName">Κίτρινο</span></div>
           <div class="car-swatches" role="group" aria-label="Επιλογή χρώματος αυτοκινήτου">
             <button type="button" class="car-swatch selected" data-car="gold" style="--paint:#f2ba39" aria-pressed="true" aria-label="Κίτρινο"><span class="paint-dot"></span>Κίτρινο</button>
@@ -252,7 +252,7 @@ function biomeIndexForZ(z){let index=0;for(let b=1;b<zoneCount();b++)if(z>=CHECK
 function biomeIndexForStage(s){return Math.min(zoneCount()-1,Math.floor(s/10));}
 
 const keys={};
-const game={mode:'intro',speed:0,z:0,lane:0,laneSpeed:0,steer:0,x:0,worldZ:0,heading:0,y:27,safeS:0,recoveries:0,railHits:0,lastRailMessage:-999,recoveries:0,time:0,totalTime:0,elapsedTime:0,questionTime:0,pauseTime:0,score:0,correct:0,station:0,question:0,localQuestion:0,selected:null,history:[],hits:new Set(),crashes:0};
+const game={mode:'intro',speed:0,z:0,lane:0,laneSpeed:0,steer:0,x:0,worldZ:0,heading:0,y:27,safeS:0,recoveries:0,railHits:0,railContactSide:0,lastRailMessage:-999,recoveries:0,time:0,totalTime:0,elapsedTime:0,questionTime:0,pauseTime:0,score:0,correct:0,station:0,question:0,localQuestion:0,selected:null,history:[],hits:new Set(),crashes:0};
 let toastTimer=0;
 function notify(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),1800)}
 function formatTime(t){const s=Math.floor(t);return `${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`}
@@ -361,7 +361,7 @@ function placeCarOnRoad(s=0,offset=0){
  const p=trackPoint(s,offset,.16);
  game.z=s;game.lane=offset;game.x=p[0];game.worldZ=p[2];
  game.heading=roadAngle(s);game.y=p[1];game.speed=0;game.steer=0;
- game.laneSpeed=0;game.safeS=s;game.lastRailMessage=-999;
+ game.laneSpeed=0;game.safeS=s;game.railContactSide=0;game.lastRailMessage=-999;
 }
 // Inviolable track boundary. The safety barrier is a real collision constraint,
 // not an autopilot: it never rotates the car or advances it along the road.
@@ -369,26 +369,34 @@ function enforceSafetyRails(nearest){
  const limit=MAX_SAFE_OFFSET;
  if(Math.abs(nearest.offset)<=limit)return false;
  const side=Math.sign(nearest.offset);
- const p=trackPoint(nearest.s,side*limit,.16);
+ // Leave a little clearance so the next inward turn is not instantly blocked.
+ const p=trackPoint(nearest.s,side*(limit-.12),.16);
  game.x=p[0];game.worldZ=p[2];
- game.z=nearest.s;game.lane=side*limit;game.y=p[1];
+ game.z=nearest.s;game.lane=side*(limit-.12);game.y=p[1];
+ game.railContactSide=side;
  const outward=side*Math.sin(game.heading-roadAngle(nearest.s));
- // Pressing the throttle against the wall cannot propel the car through it.
+ // Only the outward component is stopped; driving never passes through the rail.
  if(outward>.04)game.speed=0;
- else game.speed*=.38;
+ else game.speed*=.55;
  game.railHits++;
  if(game.time-game.lastRailMessage>1.6){
    game.lastRailMessage=game.time;
-   notify('Προστατευτικό κιγκλίδωμα · στρίψε προς το εσωτερικό');
+   notify('Στο κιγκλίδωμα: στρίψε προς το εσωτερικό και πάτησε γκάζι · R: επαναφορά');
  }
  return true;
 }
 function recoverCar(manual=false){
- const restartAt=Math.max(0,Math.min(game.safeS,TRACK_LENGTH-3));
- placeCarOnRoad(restartAt,0);
+ // Resume near the CURRENT position, not at an old checkpoint or the start.
+ // Stay behind the next unanswered gate so its questions cannot be skipped.
+ const lastGate=game.station>0?CHECKPOINTS[game.station-1]+5:0;
+ const nextGate=game.station<CHECKPOINTS.length
+   ?CHECKPOINTS[game.station]-28:TRACK_LENGTH-28;
+ const restartAt=Math.max(lastGate,Math.min(nextGate,Math.max(0,game.z-20)));
+ placeCarOnRoad(Math.max(0,restartAt),0);
+ Object.keys(keys).forEach(k=>keys[k]=false);
  game.recoveries++;
  game.score=Math.max(0,game.score-(manual?15:35));
- notify(manual?'Επαναφορά στον δρόμο · −15 βαθμοί':'Έξοδος από τη διαδρομή · −35 βαθμοί');
+ notify(manual?'Επαναφορά R: πίσω στον δρόμο · −15 βαθμοί':'Επαναφορά στον δρόμο · −35 βαθμοί');
  updateHUD();
 }
 // Road-aligned rectangular objects: gantries, guardrails, barriers and signs.
@@ -405,8 +413,8 @@ function roadBox(mesh,s,offset,height,w,h,d,col){
 }
 // ROUTE_GEOMETRY_END
 function switchMode(mode){accountTime();game.mode=mode;Object.keys(layers).forEach(k=>layers[k].classList.toggle('hidden',k!==mode));updateClockHUD();if(mode==='playing')canvas.focus({preventScroll:true})}
-function startGame(){accountTime();const previousOrder=questions.map(q=>q.id);questions=shuffledQuestions();if(selectedMode!=='both')questions=questions.filter(q=>q.author===MODE_AUTHORS[selectedMode]);if(questions.length!==questionPoolForMode(selectedMode).length)throw Error('Ασυμφωνία επιλεγμένων ερωτήσεων.');if(questions.length>1&&previousOrder.length===questions.length&&questions.every((q,i)=>q.id===previousOrder[i]))[questions[0],questions[1]]=[questions[1],questions[0]];Object.assign(game,{mode:'intro',speed:0,z:0,lane:0,laneSpeed:0,steer:0,x:0,worldZ:0,heading:0,y:roadElevation(0),safeS:0,recoveries:0,railHits:0,lastRailMessage:-999,time:0,totalTime:0,elapsedTime:0,questionTime:0,pauseTime:0,score:0,correct:0,station:0,question:0,localQuestion:0,selected:null,history:[],hits:new Set(),crashes:0});placeCarOnRoad(0);Object.keys(keys).forEach(k=>keys[k]=false);$('reviewPanel').hidden=true;$('reviewToggle').setAttribute('aria-expanded','false');$('answerHistory').replaceChildren();setReviewFilter('all',false);updateHUD();switchMode('playing');notify('Πάτησε ↑ ή W για να επιταχύνεις!')}
-function updateHUD(){ $('speed').textContent=Math.round(Math.abs(game.speed)*3.2);$('points').textContent=game.score;updateClockHUD();$('stationCount').textContent=`${game.station} / ${CHECKPOINTS.length}`;$('answeredCount').textContent=`${game.history.length} / ${questions.length}`;$('distanceText').textContent=`${Math.min(Math.floor(game.z),TRACK_LENGTH).toLocaleString('el-GR')} / ${TRACK_LENGTH.toLocaleString('el-GR')} m`;$('progress').style.width=`${Math.min(100,game.z/TRACK_LENGTH*100)}%`; $('routeText').textContent=game.station<CHECKPOINTS.length?`Επόμενη στάση σε ${Math.max(0,Math.ceil(CHECKPOINTS[game.station]-game.z))} m`:'Προς τον τερματισμό';const biome=biomeIndexForStage(game.station);$('biomeLabel').textContent=`ΖΩΝΗ ${biome+1}/${zoneCount()} · ${BIOMES[biome].name} · ${difficultyText(game.z)}`;updateRoadAlert();const guide=$('steerStatus');guide.textContent=Math.abs(game.lane)>=MAX_SAFE_OFFSET-.05?'ΠΡΟΣΤΑΤΕΥΤΙΚΟ ΟΡΙΟ · ΣΤΡΙΨΕ ΠΡΟΣ ΤΟ ΚΕΝΤΡΟ':game.steer>.15?'ΤΙΜΟΝΙ: ΔΕΞΙΑ →':game.steer<-.15?'ΤΙΜΟΝΙ: ← ΑΡΙΣΤΕΡΑ':'Τιμόνι: ευθεία · Χειροκίνητη οδήγηση';guide.classList.toggle('offroad',Math.abs(game.lane)>=MAX_SAFE_OFFSET-.05)}
+function startGame(){accountTime();const previousOrder=questions.map(q=>q.id);questions=shuffledQuestions();if(selectedMode!=='both')questions=questions.filter(q=>q.author===MODE_AUTHORS[selectedMode]);if(questions.length!==questionPoolForMode(selectedMode).length)throw Error('Ασυμφωνία επιλεγμένων ερωτήσεων.');if(questions.length>1&&previousOrder.length===questions.length&&questions.every((q,i)=>q.id===previousOrder[i]))[questions[0],questions[1]]=[questions[1],questions[0]];Object.assign(game,{mode:'intro',speed:0,z:0,lane:0,laneSpeed:0,steer:0,x:0,worldZ:0,heading:0,y:roadElevation(0),safeS:0,recoveries:0,railHits:0,railContactSide:0,lastRailMessage:-999,time:0,totalTime:0,elapsedTime:0,questionTime:0,pauseTime:0,score:0,correct:0,station:0,question:0,localQuestion:0,selected:null,history:[],hits:new Set(),crashes:0});placeCarOnRoad(0);Object.keys(keys).forEach(k=>keys[k]=false);$('reviewPanel').hidden=true;$('reviewToggle').setAttribute('aria-expanded','false');$('answerHistory').replaceChildren();setReviewFilter('all',false);updateHUD();switchMode('playing');notify('Πάτησε ↑ ή W για να επιταχύνεις!')}
+function updateHUD(){ $('speed').textContent=Math.round(Math.abs(game.speed)*3.2);$('points').textContent=game.score;updateClockHUD();$('stationCount').textContent=`${game.station} / ${CHECKPOINTS.length}`;$('answeredCount').textContent=`${game.history.length} / ${questions.length}`;$('distanceText').textContent=`${Math.min(Math.floor(game.z),TRACK_LENGTH).toLocaleString('el-GR')} / ${TRACK_LENGTH.toLocaleString('el-GR')} m`;$('progress').style.width=`${Math.min(100,game.z/TRACK_LENGTH*100)}%`; $('routeText').textContent=game.station<CHECKPOINTS.length?`Επόμενη στάση σε ${Math.max(0,Math.ceil(CHECKPOINTS[game.station]-game.z))} m`:'Προς τον τερματισμό';const biome=biomeIndexForStage(game.station);$('biomeLabel').textContent=`ΖΩΝΗ ${biome+1}/${zoneCount()} · ${BIOMES[biome].name} · ${difficultyText(game.z)}`;updateRoadAlert();const guide=$('steerStatus');guide.textContent=game.railContactSide?'ΣΤΟ ΚΙΓΚΛΙΔΩΜΑ · ΣΤΡΙΨΕ ΚΑΙ ΠΑΤΗΣΕ ΓΚΑΖΙ · R: ΕΠΑΝΑΦΟΡΑ':game.steer>.15?'ΤΙΜΟΝΙ: ΔΕΞΙΑ →':game.steer<-.15?'ΤΙΜΟΝΙ: ← ΑΡΙΣΤΕΡΑ':'Τιμόνι: ευθεία · Χειροκίνητη οδήγηση';guide.classList.toggle('offroad',!!game.railContactSide)}
 function updateRoadAlert(){
  const s=game.z,alert=$('roadAlert');
  if(game.mode!=='playing'){alert.hidden=true;return;}
@@ -480,8 +488,38 @@ function toggleReview(){
 }
 function pause(){if(game.mode==='playing')switchMode('pause');else if(game.mode==='pause')switchMode('playing')}
 $('startBtn').addEventListener('click',startGame);$('restartBtn').addEventListener('click',startGame);$('resumeBtn').addEventListener('click',()=>switchMode('playing'));$('nextQuestion').addEventListener('click',advanceQuestion);$('reviewToggle').addEventListener('click',toggleReview);$('reviewAll').addEventListener('click',()=>setReviewFilter('all'));$('reviewWrong').addEventListener('click',()=>setReviewFilter('wrong'));
-window.addEventListener('keydown',e=>{let k=e.key;if(k==='w'||k==='W')k='ArrowUp';else if(k==='s'||k==='S')k='ArrowDown';else if(k==='a'||k==='A')k='ArrowLeft';else if(k==='d'||k==='D')k='ArrowRight';if(k.startsWith('Arrow')||k===' '){e.preventDefault()}keys[k]=true;if(e.repeat)return;if(k==='p'||k==='P'||k==='Escape'){if(game.mode==='playing'||game.mode==='pause'){pause();e.preventDefault()}}if((k==='r'||k==='R')&&game.mode==='playing'){recoverCar(true);e.preventDefault()}if(game.mode==='quiz'&&['1','2','3','4','5','6','7','8'].includes(k)){answerQuestion(Number(k)-1)}});
-window.addEventListener('keyup',e=>{let k=e.key;if(k==='w'||k==='W')k='ArrowUp';else if(k==='s'||k==='S')k='ArrowDown';else if(k==='a'||k==='A')k='ArrowLeft';else if(k==='d'||k==='D')k='ArrowRight';keys[k]=false});window.addEventListener('blur',()=>{Object.keys(keys).forEach(k=>keys[k]=false);if(game.mode==='playing')switchMode('pause')});
+// Physical key codes work on both Greek and English keyboard layouts.
+const INPUT_CODE_MAP={KeyW:'ArrowUp',KeyS:'ArrowDown',KeyA:'ArrowLeft',KeyD:'ArrowRight',KeyR:'r',KeyP:'p'};
+function normalizeInputKey(e){
+ const byCode=INPUT_CODE_MAP[e.code];
+ if(byCode)return byCode;
+ const key=e.key||'';
+ const letter=key.toLowerCase();
+ return {w:'ArrowUp',s:'ArrowDown',a:'ArrowLeft',d:'ArrowRight',r:'r',p:'p'}[letter]||key;
+}
+window.addEventListener('keydown',e=>{
+ const k=normalizeInputKey(e);
+ if(k.startsWith('Arrow')){
+   if(game.mode==='playing')keys[k]=true;
+   e.preventDefault();
+ }else if(k===' '){e.preventDefault();}
+ if(e.repeat)return;
+ if((k==='p'||k==='Escape')&&(game.mode==='playing'||game.mode==='pause')){
+   pause();e.preventDefault();return;
+ }
+ // R also works from pause, where a lost canvas focus previously made it seem broken.
+ if(k==='r'&&(game.mode==='playing'||game.mode==='pause')){
+   recoverCar(true);e.preventDefault();return;
+ }
+ if(game.mode==='quiz'&&['1','2','3','4','5','6','7','8'].includes(k)){
+   answerQuestion(Number(k)-1);
+ }
+});
+window.addEventListener('keyup',e=>{
+ const k=normalizeInputKey(e);
+ if(k.startsWith('Arrow'))keys[k]=false;
+});
+window.addEventListener('blur',()=>{Object.keys(keys).forEach(k=>keys[k]=false);if(game.mode==='playing')switchMode('pause')});
 $('recoverTouch').addEventListener('click',e=>{e.preventDefault();if(game.mode==='playing')recoverCar(true)});
 for(const b of document.querySelectorAll('[data-key]')){let key=b.dataset.key;const press=e=>{e.preventDefault();b.setPointerCapture?.(e.pointerId);keys[key]=true;b.classList.add('pressed')};const release=e=>{e.preventDefault();keys[key]=false;b.classList.remove('pressed')};b.addEventListener('pointerdown',press);b.addEventListener('pointerup',release);b.addEventListener('pointercancel',release);b.addEventListener('lostpointercapture',release)}
 // ---------- 3D renderer: native WebGL (no libraries, no network requests). ----------
@@ -989,6 +1027,12 @@ function update(dt){
  const left=!!keys.ArrowLeft,right=!!keys.ArrowRight;
  const requested=(right?1:0)-(left?1:0);
  game.steer+=(requested-game.steer)*Math.min(1,dt*9);
+ // At a wall, permit a controlled stationary pivot with either steering key.
+ // This solves the former deadlock: speed=0 once made turning impossible.
+ // No input means no turning; the player still drives every bend manually.
+ if(game.railContactSide!==0&&Math.abs(game.lane)>MAX_SAFE_OFFSET-.48&&requested!==0){
+   game.heading+=requested*1.55*dt;
+ }
  const previous=game.z;
  const grade=roadGrade(game.z);
  const offRoad=Math.abs(game.lane)>ROAD_HALF;
@@ -1012,6 +1056,7 @@ function update(dt){
    game.z=Math.min(TRACK_LENGTH,Math.max(0,nearest.s));
    game.lane=nearest.offset;
    game.y+=(roadElevation(game.z)+.16-game.y)*Math.min(1,dt*7);
+   if(Math.abs(game.lane)<MAX_SAFE_OFFSET-.48)game.railContactSide=0;
  }
  const facing=Math.cos(game.heading-roadAngle(game.z));
  if(Math.abs(game.lane)<MAX_SAFE_OFFSET-.4&&facing>.15)game.safeS=game.z;
