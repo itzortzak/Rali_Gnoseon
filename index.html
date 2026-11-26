@@ -698,23 +698,29 @@ for(let distance=290;distance<FULL_TRACK_END+250;distance+=540){
  if(biome===BIOMES[5])terrain.cone(x,GROUND_Y+peak*.69,z,radius*.31,peak*.31,[.95,.96,.98]);
 }
 // Hazards start sparse and forgiving, becoming denser and more varied.
+// More frequent, varied obstacles across the whole course, never blocking all lanes.
 const hazards=[];
-let nextHazard=820;
-while(nextHazard<FULL_TRACK_END-140){
+const HAZARD_LABELS={cone:'κώνος',barrel:'βαρέλι',rock:'βράχος',barrier:'οδόφραγμα',
+ crate:'κιβώτιο',log:'κορμός',tyres:'ελαστικά',puddle:'νερό στο οδόστρωμα'};
+let nextHazard=260;
+while(nextHazard<FULL_TRACK_END-130){
  const difficultyBand=nextHazard<2400?0:nextHazard<6000?1:nextHazard<9800?2:nextHazard<16000?3:4;
- const gap=[435,315,245,184,143][difficultyBand]+rand()*[125,100,92,80,75][difficultyBand];
+ const gap=[245,200,166,137,112][difficultyBand]+rand()*[85,73,67,58,48][difficultyBand];
  nextHazard+=gap;
- if(nextHazard>=FULL_TRACK_END-140)break;
- if(FULL_CHECKPOINTS.some(c=>Math.abs(c-nextHazard)<65))continue;
- if(TURN_EVENTS.some(t=>Math.abs(t.center-nextHazard)<(difficultyBand<3?165:105)))continue;
+ if(nextHazard>=FULL_TRACK_END-130)break;
+ if(FULL_CHECKPOINTS.some(c=>Math.abs(c-nextHazard)<77))continue;
+ if(TURN_EVENTS.some(t=>Math.abs(t.center-nextHazard)<(difficultyBand<3?110:65)))continue;
  const variants=[
-   ['cone'],['cone','cone','barrel'],['cone','barrel','rock'],
-   ['cone','barrel','rock','barrier'],['barrel','rock','barrier','cone','barrier']
+  ['cone','cone','puddle'],
+  ['cone','barrel','puddle','crate'],
+  ['cone','barrel','rock','puddle','tyres'],
+  ['cone','barrel','rock','barrier','log','crate','puddle'],
+  ['barrel','rock','barrier','cone','log','crate','tyres','puddle']
  ][difficultyBand];
  const type=variants[Math.floor(rand()*variants.length)];
- // Start with a clear middle lane, then narrow the driving line.
- const offset=(rand()<.5?-1:1)*(difficultyBand===0?6.4+rand()*.9:3.1+rand()*3.7);
- const h={z:nextHazard,offset,type,radius:type==='barrier'?2.8:type==='rock'?2.0:1.65};
+ const offset=(rand()<.5?-1:1)*(difficultyBand===0?5.7+rand()*1.5:2.1+rand()*4.6);
+ const radius=type==='barrier'?2.75:type==='log'?2.55:type==='puddle'?1.9:type==='rock'?2.05:1.65;
+ const h={z:nextHazard,offset,type,radius,label:HAZARD_LABELS[type]};
  hazards.push(h);
  const [x,y,z]=trackPoint(nextHazard,offset,.05);
  if(type==='cone'){
@@ -726,9 +732,23 @@ while(nextHazard<FULL_TRACK_END-140){
  }else if(type==='rock'){
    terrain.cone(x,y,z,2.1,3.1,[.46,.44,.39]);
    terrain.box(x,y+.38,z,2.4,.76,2.3,[.57,.51,.44]);
- }else{
+ }else if(type==='barrier'){
    roadBox(terrain,nextHazard,offset,1.1,4.6,2.1,.85,[.96,.63,.14]);
    for(let i=0;i<3;i++)roadBox(terrain,nextHazard,offset-1.5+i*1.5,1.13,.42,1.6,.94,[.96,.91,.72]);
+ }else if(type==='crate'){
+   roadBox(terrain,nextHazard,offset,1.15,2.45,2.15,2.45,[.51,.32,.19]);
+   roadBox(terrain,nextHazard,offset,1.31,2.25,.20,2.60,[.78,.55,.28]);
+   roadBox(terrain,nextHazard,offset,1.13,.20,2.35,2.60,[.74,.49,.28]);
+ }else if(type==='log'){
+   roadBox(terrain,nextHazard,offset,.48,4.50,.83,1.15,[.43,.27,.14]);
+   roadBox(terrain,nextHazard,offset,.80,4.40,.18,1.15,[.68,.42,.21]);
+ }else if(type==='tyres'){
+   roadBox(terrain,nextHazard,offset,.51,2.25,1.02,2.10,[.12,.15,.16]);
+   roadBox(terrain,nextHazard,offset,1.48,2.25,.96,2.10,[.13,.15,.16]);
+   roadBox(terrain,nextHazard,offset,1.19,2.35,.15,2.20,[.68,.71,.70]);
+ }else if(type==='puddle'){
+   roadBox(terrain,nextHazard,offset,.016,3.80,.038,4.0,[.20,.44,.49]);
+   roadBox(terrain,nextHazard,offset,.042,2.40,.018,2.2,[.44,.66,.67]);
  }
 }
 // The vehicle mesh can be rebuilt with one of five selectable paint colours.
@@ -875,6 +895,14 @@ function renderFallback(){
      polygon([[x-.9*sc,y],[x,y-2.5*sc],[x+.9*sc,y]],'#ee691a');
    }else if(o.type==='rock'){
      polygon([[x-2*sc,y],[x-1.4*sc,y-2.6*sc],[x+1.4*sc,y-3*sc],[x+2*sc,y]],'#78756a');
+   }else if(o.type==='puddle'){
+     polygon([[x-2.1*sc,y],[x-1.7*sc,y-.25*sc],[x+1.7*sc,y-.25*sc],[x+2.1*sc,y]],'#3d8e9a');
+   }else if(o.type==='log'){
+     polygon([[x-2.3*sc,y],[x-2.3*sc,y-.7*sc],[x+2.3*sc,y-.7*sc],[x+2.3*sc,y]],'#80562e');
+   }else if(o.type==='tyres'){
+     polygon([[x-1.15*sc,y],[x-1.15*sc,y-2.05*sc],[x+1.15*sc,y-2.05*sc],[x+1.15*sc,y]],'#1d2629');
+   }else if(o.type==='crate'){
+     polygon([[x-1.35*sc,y],[x-1.35*sc,y-2.1*sc],[x+1.35*sc,y-2.1*sc],[x+1.35*sc,y]],'#97663c');
    }else{
      const bw=o.type==='barrier'?4.4:2;
      polygon([[x-bw*.5*sc,y],[x-bw*.5*sc,y-2.2*sc],[x+bw*.5*sc,y-2.2*sc],[x+bw*.5*sc,y]],'#dc8124');
