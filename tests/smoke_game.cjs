@@ -239,7 +239,7 @@ assert(api.game.heading>0,'KeyD / right did not steer right on Greek layout');
 emitKey('keyup','KeyD','δ');emitKey('keyup','KeyW','ω');
 
 // R recovers to the local road centre, not the beginning of the game.
-api.game.mode='intro';api.startGame();api.game.station=api.checkpoints().length;
+api.game.mode='intro';api.startGame();api.game.station=10; // Last answered gate: 3480 m
 api.placeCarOnRoad(3500,api.MAX_SAFE_OFFSET-.13);
 api.game.railContactSide=1;api.game.speed=0;
 api.keys.ArrowUp=true;
@@ -253,6 +253,7 @@ assert(api.game.railContactSide===0,'R failed to clear barrier state');
 assert(!api.keys.ArrowUp,'R must release stale gas input');
 emitKey('keydown','KeyR','ρ',true);
 assert.equal(api.game.recoveries,previousRecoveries+1,'Held R caused repeated penalties');
+api.game.station=5;
 api.placeCarOnRoad(2000,api.MAX_SAFE_OFFSET-.12);
 api.game.mode='pause';
 const beforePause=api.game.recoveries;
