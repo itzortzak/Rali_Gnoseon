@@ -603,6 +603,25 @@ for(let s=-75;s<FULL_TRACK_END+120;s+=ROAD_STEP){
 for(let s=-45;s<FULL_TRACK_END+100;s+=27){
  strip(terrain,s,Math.min(s+12,FULL_TRACK_END+100),-.16,.16,-.016,middle);
 }
+// Continuous safety barriers follow both edges of the entire mountain track,
+// including bends, hairpins and hill crests. Physical bounds are slightly inset.
+const RAIL_OFFSET=ROAD_HALF+.75;
+for(let s=-75;s<FULL_TRACK_END+120;s+=10){
+ const next=Math.min(s+10,FULL_TRACK_END+120);
+ for(const side of [-1,1]){
+   const offset=side*RAIL_OFFSET;
+   terrain.quad(trackPoint(s,offset,.72),trackPoint(next,offset,.72),
+                trackPoint(next,offset,1.28),trackPoint(s,offset,1.28),
+                [.81,.86,.84]);
+   terrain.quad(trackPoint(s,offset,1.38),trackPoint(next,offset,1.38),
+                trackPoint(next,offset,1.53),trackPoint(s,offset,1.53),
+                [.94,.81,.46]);
+ }
+}
+for(let s=-45;s<FULL_TRACK_END+100;s+=55){
+ for(const side of [-1,1])
+   roadBox(terrain,s,side*RAIL_OFFSET,.79,.28,1.58,.30,[.43,.48,.49]);
+}
 // Knowledge checkpoint gates are aligned to the actual tangent of the road.
 for(let i=0;i<FULL_CHECKPOINTS.length;i++){
  const s=FULL_CHECKPOINTS[i],col=BIOMES[Math.min(6,Math.floor(i/10))].arch;
@@ -872,6 +891,12 @@ function renderFallback(){
    ribbon(a,s,-ROAD_HALF,ROAD_HALF,-.07,rgb(zone.road));
    ribbon(a,s,-ROAD_HALF+.37,-ROAD_HALF+.57,-.023,'#e3d8b4');
    ribbon(a,s,ROAD_HALF-.57,ROAD_HALF-.37,-.023,'#e3d8b4');
+   // Raised, continuous rails in the software-rendered perspective as well.
+   for(const side of [-1,1]){
+     const edge=side*RAIL_OFFSET;
+     polygon([pr(a,edge,.72),pr(s,edge,.72),
+              pr(s,edge,1.38),pr(a,edge,1.38)],'#c6d6d3');
+   }
    if(Math.floor(a/14)%2===0)ribbon(a,s,-.15,.15,-.013,'#f0d492');
  }
  const items=[];
