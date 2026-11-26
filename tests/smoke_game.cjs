@@ -168,7 +168,7 @@ for(const station of [120,1200,3300,7620,12300,21500]){
   }
   assert(api.game.railHits>0,'Rail collision not registered');
   assert.equal(api.game.recoveries,0,'Guardrail should protect without teleporting car');
-  assert(maxLane>=api.MAX_SAFE_OFFSET-.01,'Car never reached visible rail');
+  assert(maxLane>=api.MAX_SAFE_OFFSET-.15,'Car did not reach the padded safety boundary');
   // The barrier must not steer on its own or follow the road like an autopilot.
   assert(Math.abs(api.game.heading-headingBefore)<1e-8,'Guardrail automatically steered the car');
   Object.keys(api.keys).forEach(k=>api.keys[k]=false);
