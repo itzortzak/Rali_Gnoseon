@@ -14,6 +14,7 @@ script=script.replace('updateHUD();requestAnimationFrame(frame);',`
   trackLength:()=>TRACK_LENGTH,roadAngle,roadGrade,roadZ,roadElevation,render,
   sceneryRoots,scenerySurfaceHeight,GROUND_Y,hazards,TURN_EVENTS,difficultyAt,
   keys,update,nearestRoadPose,placeCarOnRoad,recoverCar,enforceSafetyRails,trackPoint,
+  setDrivingMode,updateAutomaticDriving,automaticLaneTarget,
   ROAD_HALF,MAX_SAFE_OFFSET,RAIL_OFFSET};
  updateHUD();requestAnimationFrame(frame);`);
 function createElement(){
@@ -274,6 +275,74 @@ api.placeCarOnRoad(obstacle.z+8,-obstacle.offset);
 api.update(.08);
 assert.equal(api.game.hits.size,farHitCount,'Obstacle hit across opposite lane');
 console.log('Actual driving, hairpin failure and physical collisions: passed.');
+// Educational accessibility: automated driving changes only the vehicle motion,
+// never the quiz rules, score, answers, checkpoint order or permitted finish.
+assert(html.includes('data-drive="manual"')&&html.includes('data-drive="auto"'),
+ 'Driving accessibility choices must be visible on the initial screen');
+assert(html.includes('id="switchDriveBtn"'),'Missing in-race mode switch');
+for(const [mode,config] of Object.entries(expected)){
+ api.game.mode='intro';
+ api.setQuestionMode(mode);
+ api.setDrivingMode('auto');
+ api.startGame();
+ assert.equal(api.game.driveMode,'auto');
+ assert.equal(api.game.z,0);
+ assert.equal(api.game.history.length,0);
+ assert.equal(api.game.speed,0);
+ // The first game tick must move without ArrowUp and without steering inputs.
+ for(let i=0;i<40;i++)api.update(.045);
+ assert(api.game.z>3,'Automatic mode requires no driving input');
+ const saved=api.game.z,score=api.game.score,count=api.game.history.length;
+ // Mode can be switched during a game without losing answers or restarting.
+ api.setDrivingMode('manual');
+ assert.equal(api.game.driveMode,'manual');
+ assert.equal(api.game.z,saved);
+ assert.equal(api.game.score,score);
+ assert.equal(api.game.history.length,count);
+ api.setDrivingMode('auto');
+ assert.equal(api.game.driveMode,'auto');
+ assert.equal(api.game.history.length,count);
+ let ticks=0,visited=0,minimumGap=Infinity;
+ while(api.game.mode!=='finish'&&ticks<40000){
+   if(api.game.mode==='playing'){
+     const s=api.game.z;
+     api.update(.045);
+     ticks++;
+     assert(api.game.z>=s-1e-6,'Automatic mode reversed route progress');
+     assert(Math.abs(api.game.lane)<api.MAX_SAFE_OFFSET,'Automated car left the protected road');
+     if(ticks%15===0){
+       for(const h of api.hazards){
+         if(Math.abs(h.z-api.game.z)>9)continue;
+         const p=api.trackPoint(h.z,h.offset,.10);
+         const gap=Math.hypot(api.game.x-p[0],api.game.worldZ-p[2]);
+         minimumGap=Math.min(minimumGap,gap-h.radius);
+       }
+     }
+   }else if(api.game.mode==='quiz'){
+     visited++;
+     assert.equal(api.game.station,visited-1,'Question stop was skipped or duplicated');
+     const stop=api.game.station;
+     const n=stop%2===0?2:3;
+     for(let i=0;i<n;i++){
+       const q=api.questions()[api.game.question];
+       assert(q,'Missing automatic-mode quiz question');
+       api.answerQuestion(q.answer);
+       api.advanceQuestion();
+     }
+   }else throw Error('Unexpected automatic mode '+api.game.mode);
+ }
+ assert(ticks<40000,'Autopilot never reached the finish');
+ assert.equal(visited,config.stops,'Autopilot skipped a checkpoint');
+ assert.equal(api.game.history.length,config.questions,'Autopilot lost quiz responses');
+ assert.equal(api.game.correct,config.questions,'Correct-answer count changed in auto mode');
+ assert.equal(api.game.mode,'finish','Automatic race did not terminate');
+ assert.equal(api.game.z,config.distance);
+ assert.equal(api.game.hits.size,0,'Automatic driving collided with an obstacle');
+ assert(minimumGap>1.05,'Automatic mode passed too close to an obstacle: '+minimumGap);
+ console.log('Auto mode '+mode+': '+visited+' stops, '+config.questions+' questions, '+ticks+' driving ticks; obstacle clearance '+minimumGap.toFixed(2));
+}
+api.game.mode='intro';
+api.setDrivingMode('manual');
 // A new run in the same mode must reshuffle its questions.
 api.game.mode='intro';api.setQuestionMode('both');api.startGame();
 const current=api.questions().map(q=>q.id);
