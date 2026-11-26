@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#10262a">
-<title>Ράλι Γνώσεων 3D v4.1 — Αρχαία Ελληνικά Α΄ Λυκείου</title>
+<title>Ράλι Γνώσεων 3D v4.2 — Αρχαία Ελληνικά Α΄ Λυκείου</title>
 <style>
 :root { --dark:#10262a; --dark2:#173438; --ink:#163038; --mint:#b3e6c7; --gold:#f6cc62; --cream:#f5f3ea; --line:#dbe4dc; --muted:#627677; --red:#b44a36; }
 *{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:system-ui,-apple-system,"Segoe UI",Arial,sans-serif;background:#eef2ed;color:var(--ink)}
@@ -100,11 +100,23 @@ button,input{font:inherit}button{cursor:pointer}button:disabled{opacity:.5;curso
 @media(max-width:600px){.road-alert{right:9px;top:116px;font-size:10px;max-width:152px;padding:7px 9px}}
 .steer-indicator{margin-top:5px;color:#cee9da;font-size:11px;font-weight:650}
 .steer-indicator.offroad{color:#ffd58c}
+
+.driving-picker{padding:11px 12px;margin:8px 0 12px;background:#edf3f5;border:1px solid #cbdfe1;border-radius:12px}
+.driving-picker .car-picker-title{margin-bottom:8px}
+.driving-choices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.driving-choice{display:flex;flex-direction:column;gap:4px;justify-content:center;align-items:center;text-align:center;min-height:70px;padding:10px 9px;background:#fff;border:1.5px solid #c6d6d2;border-radius:10px;color:#20453e}
+.driving-choice b{font-size:13px}.driving-choice span{font-size:11px;color:#557066;line-height:1.35}
+.driving-choice.selected{background:#e3f2eb;border-color:#247151;box-shadow:inset 0 0 0 1px #247151}
+.driving-choice:focus-visible,.switch-drive:focus-visible{outline:3px solid #f5c95f;outline-offset:2px}
+.switch-drive{display:block;margin-top:8px;border:1px solid #9bc9b0;border-radius:8px;background:#2b6954;color:white;padding:7px 12px;font-size:11px;font-weight:750;cursor:pointer;pointer-events:auto}
+.switch-drive:hover{background:#397c65}
+.stage.auto-mode .controls{display:none!important}
+@media(max-width:600px){.driving-choice{padding:9px 6px;min-height:72px}.driving-choice b{font-size:12px}.driving-choice span{font-size:10px}.switch-drive{font-size:10px}}
 </style>
 </head>
 <body>
 <div class="page">
-  <div class="masthead"><div class="brand"><div class="brandmark">R↗</div><div><strong>ΡΑΛΙ ΓΝΩΣΕΩΝ <span style="color:#36755d">3D</span></strong><small>ΑΡΧΑΙΑ ΕΛΛΗΝΙΚΑ · Α΄ ΛΥΚΕΙΟΥ</small></div></div><span class="chip">ΤΡΑΠΕΖΑ ΘΕΜΑΤΩΝ · v4.1</span></div>
+  <div class="masthead"><div class="brand"><div class="brandmark">R↗</div><div><strong>ΡΑΛΙ ΓΝΩΣΕΩΝ <span style="color:#36755d">3D</span></strong><small>ΑΡΧΑΙΑ ΕΛΛΗΝΙΚΑ · Α΄ ΛΥΚΕΙΟΥ</small></div></div><span class="chip">ΤΡΑΠΕΖΑ ΘΕΜΑΤΩΝ · v4.2</span></div>
   <main class="stage" id="stage">
     <canvas id="world" aria-label="Τρισδιάστατη πίστα ράλι" tabindex="0"></canvas>
     <div class="topbar">
@@ -116,8 +128,8 @@ button,input{font:inherit}button{cursor:pointer}button:disabled{opacity:.5;curso
       <div class="metric wide"><span>ΣΤΑΣΕΙΣ · ΑΠΑΝΤΗΣΕΙΣ</span><strong id="stationCount">0 / 68</strong><em id="answeredCount">0 / 170</em></div>
     </div>
     <div class="toast" id="toast" role="status"></div><div class="road-alert" id="roadAlert" aria-live="off" hidden></div>
-    <div class="routebar"><div class="routebar-title"><span id="routeText">Θουκυδίδης & Ξενοφώντας</span><b id="distanceText">0 / 24.680 m</b></div><div class="track"><div id="progress"></div></div><div class="zone-indicator" id="biomeLabel">ΖΩΝΗ 1/7 · Πράσινοι λόφοι</div><div class="steer-indicator" id="steerStatus">Τιμόνι: ευθεία · Χειροκίνητη οδήγηση</div></div>
-    <div class="helpbar">↑ / W Γκάζι · ↓ / S Φρένο · ← / A Αριστερά · → / D Δεξιά · R Επαναφορά · P Παύση</div>
+    <div class="routebar"><div class="routebar-title"><span id="routeText">Θουκυδίδης & Ξενοφώντας</span><b id="distanceText">0 / 24.680 m</b></div><div class="track"><div id="progress"></div></div><div class="zone-indicator" id="biomeLabel">ΖΩΝΗ 1/7 · Πράσινοι λόφοι</div><div class="steer-indicator" id="steerStatus">Τιμόνι: ευθεία · Χειροκίνητη οδήγηση</div><button type="button" class="switch-drive" id="switchDriveBtn" aria-label="Μετάβαση σε αυτόματη οδήγηση" title="Αλλαγή τρόπου οδήγησης">ΑΥΤΟΜΑΤΗ ΟΔΗΓΗΣΗ</button></div>
+    <div class="helpbar" id="driveHelp">↑ / W Γκάζι · ↓ / S Φρένο · ← / A Αριστερά · → / D Δεξιά · R Επαναφορά · P Παύση</div>
     <div class="controls" id="touchControls" aria-label="Χειριστήρια αφής"><div class="pad"><button class="ctrl" data-key="ArrowLeft" aria-label="Αριστερά">←</button><button class="ctrl" data-key="ArrowRight" aria-label="Δεξιά">→</button></div><div class="pedals"><button class="ctrl" data-key="ArrowDown" aria-label="Φρένο">ΦΡΕΝΟ</button><button class="ctrl gas" data-key="ArrowUp" aria-label="Γκάζι">ΓΚΑΖΙ</button><button class="ctrl" id="recoverTouch" aria-label="Επαναφορά στον δρόμο, πλήκτρο R">↺ R</button></div></div>
     <section class="layer" id="introLayer" aria-label="Έναρξη παιχνιδιού">
       <div class="dialog intro">
@@ -130,6 +142,13 @@ button,input{font:inherit}button{cursor:pointer}button:disabled{opacity:.5;curso
     <button type="button" class="topic-choice" data-mode="thucydides" aria-pressed="false"><b>Θουκυδίδης</b><span>95 ερωτήσεις</span></button>
     <button type="button" class="topic-choice" data-mode="xenophon" aria-pressed="false"><b>Ξενοφώντας</b><span>75 ερωτήσεις</span></button>
     <button type="button" class="topic-choice selected" data-mode="both" aria-pressed="true"><b>Και οι δύο</b><span>170 ερωτήσεις</span></button>
+  </div>
+</div>
+<div class="driving-picker" role="group" aria-label="Επιλογή τρόπου οδήγησης">
+  <div class="car-picker-title">ΤΡΟΠΟΣ ΟΔΗΓΗΣΗΣ</div>
+  <div class="driving-choices">
+    <button type="button" class="driving-choice selected" data-drive="manual" aria-pressed="true"><b>Χειροκίνητη</b><span>Οδηγείς με βέλη ή W/A/S/D</span></button>
+    <button type="button" class="driving-choice" data-drive="auto" aria-pressed="false"><b>Αυτόματη</b><span>Το αυτοκίνητο οδηγεί μόνο του · απαντάς στις ερωτήσεις</span></button>
   </div>
 </div>
 <div class="highlights"><div class="hi"><strong id="introStations">68</strong><span>Στάσεις γνώσεων</span></div><div class="hi"><strong id="introQuestions">170</strong><span>Επιμέρους ερωτήσεις</span></div><div class="hi"><strong id="introZones">7</strong><span>Διαφορετικές ζώνες τοπίου</span></div></div>
@@ -206,7 +225,46 @@ let CHECKPOINTS=FULL_CHECKPOINTS.slice();
 let TRACK_LENGTH=CHECKPOINTS[CHECKPOINTS.length-1]+320;
 let QUESTIONS_PER_STOP=CHECKPOINTS.map((_,i)=>i%2===0?2:3);
 let selectedMode='both';
+let selectedDriveMode='manual';
 const MODE_AUTHORS={thucydides:'Θουκυδίδης',xenophon:'Ξενοφώντας'};
+function updateDriveModeUI(){
+ const mode=game.mode==='intro'?selectedDriveMode:game.driveMode;
+ for(const button of document.querySelectorAll('[data-drive]')){
+   const active=button.dataset.drive===mode;
+   button.classList.toggle('selected',active);
+   button.setAttribute('aria-pressed',String(active));
+ }
+ const auto=mode==='auto';
+ $('stage').classList.toggle('auto-mode',auto);
+ $('switchDriveBtn').textContent=auto?'ΧΕΙΡΟΚΙΝΗΤΗ ΟΔΗΓΗΣΗ':'ΑΥΤΟΜΑΤΗ ΟΔΗΓΗΣΗ';
+ $('switchDriveBtn').setAttribute('aria-label',auto?'Μετάβαση σε χειροκίνητη οδήγηση':'Μετάβαση σε αυτόματη οδήγηση');
+ $('driveHelp').textContent=auto
+  ?'Αυτόματη οδήγηση · Το όχημα σταματά στις ερωτήσεις · P Παύση'
+  :'↑ / W Γκάζι · ↓ / S Φρένο · ← / A Αριστερά · → / D Δεξιά · R Επαναφορά · P Παύση';
+}
+function setDrivingMode(mode){
+ if(!['manual','auto'].includes(mode))return;
+ if(game.mode==='intro'){
+   selectedDriveMode=mode;
+ }else if(game.mode==='playing'||game.mode==='pause'){
+   if(game.driveMode===mode)return;
+   game.driveMode=mode;
+   selectedDriveMode=mode;
+   Object.keys(keys).forEach(k=>keys[k]=false);
+   if(mode==='auto'){
+     // Align ONCE when the learner requests assistance. No score or quiz changes.
+     const s=game.z;
+     placeCarOnRoad(s,0);
+   }else{
+     // Hand over a manageable speed on a straight-aligned trajectory.
+     game.speed=Math.min(game.speed,13);
+     game.steer=0;
+   }
+   notify(mode==='auto'?'Αυτόματη οδήγηση: συγκεντρώσου στις ερωτήσεις!':'Χειροκίνητη οδήγηση: έλεγξε το τιμόνι και το γκάζι.');
+ }else return;
+ updateDriveModeUI();
+ updateHUD();
+}
 function questionPoolForMode(mode){
   return originalQuestions.filter(q=>mode==='both'||q.author===MODE_AUTHORS[mode]);
 }
@@ -252,7 +310,7 @@ function biomeIndexForZ(z){let index=0;for(let b=1;b<zoneCount();b++)if(z>=CHECK
 function biomeIndexForStage(s){return Math.min(zoneCount()-1,Math.floor(s/10));}
 
 const keys={};
-const game={mode:'intro',speed:0,z:0,lane:0,laneSpeed:0,steer:0,x:0,worldZ:0,heading:0,y:27,safeS:0,recoveries:0,railHits:0,railContactSide:0,lastRailMessage:-999,recoveries:0,time:0,totalTime:0,elapsedTime:0,questionTime:0,pauseTime:0,score:0,correct:0,station:0,question:0,localQuestion:0,selected:null,history:[],hits:new Set(),crashes:0};
+const game={mode:'intro',driveMode:'manual',speed:0,z:0,lane:0,laneSpeed:0,steer:0,x:0,worldZ:0,heading:0,y:27,safeS:0,recoveries:0,railHits:0,railContactSide:0,lastRailMessage:-999,recoveries:0,time:0,totalTime:0,elapsedTime:0,questionTime:0,pauseTime:0,score:0,correct:0,station:0,question:0,localQuestion:0,selected:null,history:[],hits:new Set(),crashes:0};
 let toastTimer=0;
 function notify(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),1800)}
 function formatTime(t){const s=Math.floor(t);return `${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`}
@@ -413,8 +471,8 @@ function roadBox(mesh,s,offset,height,w,h,d,col){
 }
 // ROUTE_GEOMETRY_END
 function switchMode(mode){accountTime();game.mode=mode;Object.keys(layers).forEach(k=>layers[k].classList.toggle('hidden',k!==mode));updateClockHUD();if(mode==='playing')canvas.focus({preventScroll:true})}
-function startGame(){accountTime();const previousOrder=questions.map(q=>q.id);questions=shuffledQuestions();if(selectedMode!=='both')questions=questions.filter(q=>q.author===MODE_AUTHORS[selectedMode]);if(questions.length!==questionPoolForMode(selectedMode).length)throw Error('Ασυμφωνία επιλεγμένων ερωτήσεων.');if(questions.length>1&&previousOrder.length===questions.length&&questions.every((q,i)=>q.id===previousOrder[i]))[questions[0],questions[1]]=[questions[1],questions[0]];Object.assign(game,{mode:'intro',speed:0,z:0,lane:0,laneSpeed:0,steer:0,x:0,worldZ:0,heading:0,y:roadElevation(0),safeS:0,recoveries:0,railHits:0,railContactSide:0,lastRailMessage:-999,time:0,totalTime:0,elapsedTime:0,questionTime:0,pauseTime:0,score:0,correct:0,station:0,question:0,localQuestion:0,selected:null,history:[],hits:new Set(),crashes:0});placeCarOnRoad(0);Object.keys(keys).forEach(k=>keys[k]=false);$('reviewPanel').hidden=true;$('reviewToggle').setAttribute('aria-expanded','false');$('answerHistory').replaceChildren();setReviewFilter('all',false);updateHUD();switchMode('playing');notify('Πάτησε ↑ ή W για να επιταχύνεις!')}
-function updateHUD(){ $('speed').textContent=Math.round(Math.abs(game.speed)*3.2);$('points').textContent=game.score;updateClockHUD();$('stationCount').textContent=`${game.station} / ${CHECKPOINTS.length}`;$('answeredCount').textContent=`${game.history.length} / ${questions.length}`;$('distanceText').textContent=`${Math.min(Math.floor(game.z),TRACK_LENGTH).toLocaleString('el-GR')} / ${TRACK_LENGTH.toLocaleString('el-GR')} m`;$('progress').style.width=`${Math.min(100,game.z/TRACK_LENGTH*100)}%`; $('routeText').textContent=game.station<CHECKPOINTS.length?`Επόμενη στάση σε ${Math.max(0,Math.ceil(CHECKPOINTS[game.station]-game.z))} m`:'Προς τον τερματισμό';const biome=biomeIndexForStage(game.station);$('biomeLabel').textContent=`ΖΩΝΗ ${biome+1}/${zoneCount()} · ${BIOMES[biome].name} · ${difficultyText(game.z)}`;updateRoadAlert();const guide=$('steerStatus');guide.textContent=game.railContactSide?'ΣΤΟ ΚΙΓΚΛΙΔΩΜΑ · ΣΤΡΙΨΕ ΚΑΙ ΠΑΤΗΣΕ ΓΚΑΖΙ · R: ΕΠΑΝΑΦΟΡΑ':game.steer>.15?'ΤΙΜΟΝΙ: ΔΕΞΙΑ →':game.steer<-.15?'ΤΙΜΟΝΙ: ← ΑΡΙΣΤΕΡΑ':'Τιμόνι: ευθεία · Χειροκίνητη οδήγηση';guide.classList.toggle('offroad',!!game.railContactSide)}
+function startGame(){accountTime();const previousOrder=questions.map(q=>q.id);questions=shuffledQuestions();if(selectedMode!=='both')questions=questions.filter(q=>q.author===MODE_AUTHORS[selectedMode]);if(questions.length!==questionPoolForMode(selectedMode).length)throw Error('Ασυμφωνία επιλεγμένων ερωτήσεων.');if(questions.length>1&&previousOrder.length===questions.length&&questions.every((q,i)=>q.id===previousOrder[i]))[questions[0],questions[1]]=[questions[1],questions[0]];Object.assign(game,{mode:'intro',driveMode:selectedDriveMode,speed:0,z:0,lane:0,laneSpeed:0,steer:0,x:0,worldZ:0,heading:0,y:roadElevation(0),safeS:0,recoveries:0,railHits:0,railContactSide:0,lastRailMessage:-999,time:0,totalTime:0,elapsedTime:0,questionTime:0,pauseTime:0,score:0,correct:0,station:0,question:0,localQuestion:0,selected:null,history:[],hits:new Set(),crashes:0});placeCarOnRoad(0);Object.keys(keys).forEach(k=>keys[k]=false);$('reviewPanel').hidden=true;$('reviewToggle').setAttribute('aria-expanded','false');$('answerHistory').replaceChildren();setReviewFilter('all',false);updateDriveModeUI();updateHUD();switchMode('playing');notify(game.driveMode==='auto'?'Αυτόματη οδήγηση: στάσεις στις ερωτήσεις!':'Πάτησε ↑ ή W για να επιταχύνεις!')}
+function updateHUD(){ $('speed').textContent=Math.round(Math.abs(game.speed)*3.2);$('points').textContent=game.score;updateClockHUD();$('stationCount').textContent=`${game.station} / ${CHECKPOINTS.length}`;$('answeredCount').textContent=`${game.history.length} / ${questions.length}`;$('distanceText').textContent=`${Math.min(Math.floor(game.z),TRACK_LENGTH).toLocaleString('el-GR')} / ${TRACK_LENGTH.toLocaleString('el-GR')} m`;$('progress').style.width=`${Math.min(100,game.z/TRACK_LENGTH*100)}%`; $('routeText').textContent=game.station<CHECKPOINTS.length?`Επόμενη στάση σε ${Math.max(0,Math.ceil(CHECKPOINTS[game.station]-game.z))} m`:'Προς τον τερματισμό';const biome=biomeIndexForStage(game.station);$('biomeLabel').textContent=`ΖΩΝΗ ${biome+1}/${zoneCount()} · ${BIOMES[biome].name} · ${difficultyText(game.z)}`;updateRoadAlert();const guide=$('steerStatus');guide.textContent=(game.mode==='intro'?selectedDriveMode:game.driveMode)==='auto'?'ΑΥΤΟΜΑΤΗ ΟΔΗΓΗΣΗ · ΕΣΥ ΑΠΑΝΤΑΣ ΣΤΙΣ ΕΡΩΤΗΣΕΙΣ':game.railContactSide?'ΣΤΟ ΚΙΓΚΛΙΔΩΜΑ · ΣΤΡΙΨΕ ΚΑΙ ΠΑΤΗΣΕ ΓΚΑΖΙ · R: ΕΠΑΝΑΦΟΡΑ':game.steer>.15?'ΤΙΜΟΝΙ: ΔΕΞΙΑ →':game.steer<-.15?'ΤΙΜΟΝΙ: ← ΑΡΙΣΤΕΡΑ':'Τιμόνι: ευθεία · Χειροκίνητη οδήγηση';guide.classList.toggle('offroad',!!game.railContactSide)}
 function updateRoadAlert(){
  const s=game.z,alert=$('roadAlert');
  if(game.mode!=='playing'){alert.hidden=true;return;}
@@ -863,10 +921,12 @@ function setCarPaint(id){if(!CAR_PAINTS[id])return;selectedCar=id;rebuildCarMesh
 }
 document.querySelectorAll('[data-car]').forEach(b=>b.addEventListener('click',()=>setCarPaint(b.dataset.car)));
 document.querySelectorAll('[data-mode]').forEach(b=>b.addEventListener('click',()=>setQuestionMode(b.dataset.mode)));
+document.querySelectorAll('[data-drive]').forEach(b=>b.addEventListener('click',()=>setDrivingMode(b.dataset.drive)));
+$('switchDriveBtn').addEventListener('click',()=>setDrivingMode(game.driveMode==='auto'?'manual':'auto'));
 $('changeModeBtn').addEventListener('click',()=>{
  switchMode('intro');
  placeCarOnRoad(0);game.station=0;game.question=0;game.history=[];
- setQuestionMode(selectedMode);canvas.blur();
+ setQuestionMode(selectedMode);updateDriveModeUI();canvas.blur();
 });
 function perspective(fov,aspect,near,far){const f=1/Math.tan(fov/2),out=new Float32Array(16);out[0]=f/aspect;out[5]=f;out[10]=(far+near)/(near-far);out[11]=-1;out[14]=2*far*near/(near-far);return out}
 function lookAt(eye,target){const z=norm(sub(eye,target)),x=norm(cross([0,1,0],z)),y=cross(z,x);return new Float32Array([x[0],y[0],z[0],0, x[1],y[1],z[1],0, x[2],y[2],z[2],0, -dot(x,eye),-dot(y,eye),-dot(z,eye),1])}
@@ -1021,8 +1081,47 @@ function render(){
  if(customFinishArch)renderMesh(customFinishArch,ID);
  renderMesh(carMesh,carModel());
 }
+// Accessible auto-driving follows the actual route and gives the student
+// full control of answering every checkpoint question. No driving keys are needed.
+function automaticLaneTarget(distance){
+ let best=0,weight=0;
+ for(const h of hazards){
+   const delta=h.z-distance;
+   if(delta>110||delta< -43)continue;
+   const fade=delta>=0?smooth01((110-delta)/66):1-smooth01(-delta/43);
+   if(fade<=weight)continue;
+   weight=fade;
+   // Stay opposite the obstacle, with sufficient clearance for the whole car.
+   best=-Math.sign(h.offset)*Math.min(MAX_SAFE_OFFSET-1.25,h.radius+3.7);
+ }
+ return best*weight;
+}
+function updateAutomaticDriving(dt){
+ const upcoming=game.station<CHECKPOINTS.length?CHECKPOINTS[game.station]:TRACK_LENGTH;
+ const grade=Math.abs(roadGrade(game.z));
+ const curve=Math.abs(roadCurvature(game.z));
+ const targetSpeed=Math.max(23,Math.min(42,40-250*curve-32*grade));
+ game.speed+=(targetSpeed-game.speed)*Math.min(1,dt*1.65);
+ const nextDistance=Math.min(upcoming,game.z+game.speed*dt);
+ game.lane+=(automaticLaneTarget(nextDistance)-game.lane)*Math.min(1,dt*3.3);
+ game.lane=Math.max(-MAX_SAFE_OFFSET+1,Math.min(MAX_SAFE_OFFSET-1,game.lane));
+ game.z=nextDistance;
+ const [x,y,z]=trackPoint(game.z,game.lane,.16);
+ game.x=x;game.y=y;game.worldZ=z;game.heading=roadAngle(game.z);
+ game.steer=0;game.railContactSide=0;game.safeS=game.z;
+ if(game.station<CHECKPOINTS.length&&game.z>=upcoming-1e-7){
+   // Stop the vehicle at exactly the same gate as the manual mode.
+   game.z=upcoming;game.speed=0;
+   updateHUD();beginQuiz();return;
+ }
+ if(game.station===CHECKPOINTS.length&&game.z>=TRACK_LENGTH-1e-7){
+   game.z=TRACK_LENGTH;game.speed=0;updateHUD();endGame();return;
+ }
+ updateHUD();
+}
 function update(dt){
  if(game.mode!=='playing'||dt<=0)return;
+ if(game.driveMode==='auto'){updateAutomaticDriving(dt);return;}
  const up=!!keys.ArrowUp,down=!!keys.ArrowDown;
  const left=!!keys.ArrowLeft,right=!!keys.ArrowRight;
  const requested=(right?1:0)-(left?1:0);
