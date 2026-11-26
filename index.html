@@ -118,7 +118,7 @@ button,input{font:inherit}button{cursor:pointer}button:disabled{opacity:.5;curso
     <div class="toast" id="toast" role="status"></div><div class="road-alert" id="roadAlert" aria-live="off" hidden></div>
     <div class="routebar"><div class="routebar-title"><span id="routeText">Θουκυδίδης & Ξενοφώντας</span><b id="distanceText">0 / 24.680 m</b></div><div class="track"><div id="progress"></div></div><div class="zone-indicator" id="biomeLabel">ΖΩΝΗ 1/7 · Πράσινοι λόφοι</div><div class="steer-indicator" id="steerStatus">Τιμόνι: ευθεία · Χειροκίνητη οδήγηση</div></div>
     <div class="helpbar">↑ / W Γκάζι · ↓ / S Φρένο · ← / A Αριστερά · → / D Δεξιά · R Επαναφορά · P Παύση</div>
-    <div class="controls" id="touchControls" aria-label="Χειριστήρια αφής"><div class="pad"><button class="ctrl" data-key="ArrowLeft" aria-label="Αριστερά">←</button><button class="ctrl" data-key="ArrowRight" aria-label="Δεξιά">→</button></div><div class="pedals"><button class="ctrl" data-key="ArrowDown" aria-label="Φρένο">ΦΡΕΝΟ</button><button class="ctrl gas" data-key="ArrowUp" aria-label="Γκάζι">ΓΚΑΖΙ</button></div></div>
+    <div class="controls" id="touchControls" aria-label="Χειριστήρια αφής"><div class="pad"><button class="ctrl" data-key="ArrowLeft" aria-label="Αριστερά">←</button><button class="ctrl" data-key="ArrowRight" aria-label="Δεξιά">→</button></div><div class="pedals"><button class="ctrl" data-key="ArrowDown" aria-label="Φρένο">ΦΡΕΝΟ</button><button class="ctrl gas" data-key="ArrowUp" aria-label="Γκάζι">ΓΚΑΖΙ</button><button class="ctrl" id="recoverTouch" aria-label="Επαναφορά στον δρόμο">↺</button></div></div>
     <section class="layer" id="introLayer" aria-label="Έναρξη παιχνιδιού">
       <div class="dialog intro">
         <div class="eyebrow">ΜΑΘΗΣΗ ΣΕ ΚΙΝΗΣΗ · 3D WEBGL</div>
@@ -460,6 +460,7 @@ function pause(){if(game.mode==='playing')switchMode('pause');else if(game.mode=
 $('startBtn').addEventListener('click',startGame);$('restartBtn').addEventListener('click',startGame);$('resumeBtn').addEventListener('click',()=>switchMode('playing'));$('nextQuestion').addEventListener('click',advanceQuestion);$('reviewToggle').addEventListener('click',toggleReview);$('reviewAll').addEventListener('click',()=>setReviewFilter('all'));$('reviewWrong').addEventListener('click',()=>setReviewFilter('wrong'));
 window.addEventListener('keydown',e=>{let k=e.key;if(k==='w'||k==='W')k='ArrowUp';else if(k==='s'||k==='S')k='ArrowDown';else if(k==='a'||k==='A')k='ArrowLeft';else if(k==='d'||k==='D')k='ArrowRight';if(k.startsWith('Arrow')||k===' '){e.preventDefault()}keys[k]=true;if(e.repeat)return;if(k==='p'||k==='P'||k==='Escape'){if(game.mode==='playing'||game.mode==='pause'){pause();e.preventDefault()}}if((k==='r'||k==='R')&&game.mode==='playing'){recoverCar(true);e.preventDefault()}if(game.mode==='quiz'&&['1','2','3','4','5','6','7','8'].includes(k)){answerQuestion(Number(k)-1)}});
 window.addEventListener('keyup',e=>{let k=e.key;if(k==='w'||k==='W')k='ArrowUp';else if(k==='s'||k==='S')k='ArrowDown';else if(k==='a'||k==='A')k='ArrowLeft';else if(k==='d'||k==='D')k='ArrowRight';keys[k]=false});window.addEventListener('blur',()=>{Object.keys(keys).forEach(k=>keys[k]=false);if(game.mode==='playing')switchMode('pause')});
+$('recoverTouch').addEventListener('click',e=>{e.preventDefault();if(game.mode==='playing')recoverCar(true)});
 for(const b of document.querySelectorAll('[data-key]')){let key=b.dataset.key;const press=e=>{e.preventDefault();b.setPointerCapture?.(e.pointerId);keys[key]=true;b.classList.add('pressed')};const release=e=>{e.preventDefault();keys[key]=false;b.classList.remove('pressed')};b.addEventListener('pointerdown',press);b.addEventListener('pointerup',release);b.addEventListener('pointercancel',release);b.addEventListener('lostpointercapture',release)}
 // ---------- 3D renderer: native WebGL (no libraries, no network requests). ----------
 let gl;try{gl=canvas.getContext('webgl',{antialias:true,alpha:false,powerPreference:'high-performance'})||canvas.getContext('experimental-webgl')}catch(err){gl=null}
@@ -702,10 +703,10 @@ for(let distance=290;distance<FULL_TRACK_END+250;distance+=540){
 const hazards=[];
 const HAZARD_LABELS={cone:'κώνος',barrel:'βαρέλι',rock:'βράχος',barrier:'οδόφραγμα',
  crate:'κιβώτιο',log:'κορμός',tyres:'ελαστικά',puddle:'νερό στο οδόστρωμα'};
-let nextHazard=260;
+let nextHazard=150;
 while(nextHazard<FULL_TRACK_END-130){
  const difficultyBand=nextHazard<2400?0:nextHazard<6000?1:nextHazard<9800?2:nextHazard<16000?3:4;
- const gap=[245,200,166,137,112][difficultyBand]+rand()*[85,73,67,58,48][difficultyBand];
+ const gap=[205,172,143,118,97][difficultyBand]+rand()*[75,64,56,49,41][difficultyBand];
  nextHazard+=gap;
  if(nextHazard>=FULL_TRACK_END-130)break;
  if(FULL_CHECKPOINTS.some(c=>Math.abs(c-nextHazard)<77))continue;
