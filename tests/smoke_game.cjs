@@ -40,7 +40,16 @@ const ctx=new Proxy({createLinearGradient:()=>({addColorStop:()=>{}})},{
 const canvas=get('world');canvas.clientWidth=1280;canvas.clientHeight=720;
 canvas.getContext=kind=>kind==='2d'?ctx:null;
 const document={getElementById:get,createElement,querySelectorAll:()=>[]};
-const context={document,window:{addEventListener:()=>{}},performance:{now:()=>0},
+// Capture real event-handler callbacks instead of bypassing keyboard input.
+const windowEvents={};
+const fakeWindow={addEventListener:(type,fn)=>{(windowEvents[type]??=[]).push(fn);}};
+const emitKey=(type,code,key=code,repeat=false)=>{
+ const e={code,key,repeat,defaultPrevented:false,
+  preventDefault(){this.defaultPrevented=true;}};
+ for(const listener of windowEvents[type]||[])listener(e);
+ return e;
+};
+const context={document,window:fakeWindow,performance:{now:()=>0},
  requestAnimationFrame:()=>{},setTimeout:()=>0,clearTimeout:()=>{},alert:()=>{},devicePixelRatio:1};
 vm.createContext(context);
 vm.runInContext(script,context,{timeout:20000,filename:'rali-game.js'});
@@ -175,6 +184,82 @@ for(let i=0;i<140;i++){
 assert(api.game.railHits>0,'Auto-following the hairpin instead of hitting the rail');
 for(const key of Object.keys(api.keys))api.keys[key]=false;
 
+
+// Regression: the old game set speed=0 at a wall, but turning required speed.
+// Rotate at rest ONLY while the player actively presses a steering key, then
+// accelerate inward without needing R. Check both edges of the road.
+for(const side of [-1,1]){
+ api.game.mode='intro';api.startGame();api.game.station=api.checkpoints().length;
+ api.placeCarOnRoad(1100,side*(api.MAX_SAFE_OFFSET-.55));
+ api.game.heading=api.roadAngle(1100)+side*.98;
+ api.game.speed=22;api.keys.ArrowUp=true;
+ for(let i=0;i<12&&api.game.railHits===0;i++)api.update(.045);
+ assert(api.game.railHits>0,'Could not reach the barrier for unstick test');
+ assert(Math.abs(api.game.lane)<api.MAX_SAFE_OFFSET,'Vehicle outside physical lane');
+ assert.equal(api.game.speed,0,'Barrier must stop outward movement');
+ const oldHeading=api.game.heading,oldPosition=api.game.z,oldRecoveries=api.game.recoveries;
+ api.keys.ArrowUp=false;
+ const inwardKey=side>0?'ArrowLeft':'ArrowRight';
+ api.keys[inwardKey]=true;
+ for(let i=0;i<18;i++)api.update(.045);
+ assert(side*(api.game.heading-oldHeading)<-.70,'Steering while stationary against wall did not rotate car');
+ assert.equal(api.game.speed,0,'Steering without throttle must not move vehicle');
+ api.keys[inwardKey]=false;api.keys.ArrowUp=true;
+ let freed=false;
+ for(let i=0;i<90;i++){
+  api.update(.045);
+  if(Math.abs(api.game.lane)<api.MAX_SAFE_OFFSET-1.0){freed=true;break;}
+ }
+ assert(freed,'Unable to drive clear of the protective barrier');
+ assert.equal(api.game.recoveries,oldRecoveries,'Barrier should not require automatic reset');
+ assert(api.game.z>oldPosition,'Driving away from the wall must increase progress');
+ for(const k of Object.keys(api.keys))api.keys[k]=false;
+}
+
+// Input handlers: test physical arrows, A/D/W and R with Greek-layout key values.
+assert((windowEvents.keydown||[]).length>0,'Keyboard handler was not installed');
+api.game.mode='intro';api.startGame();api.game.station=api.checkpoints().length;
+let e=emitKey('keydown','ArrowRight','ArrowRight');
+assert(e.defaultPrevented&&api.keys.ArrowRight,'ArrowRight keydown not handled');
+e=emitKey('keydown','KeyW','ω');
+assert(e.defaultPrevented&&api.keys.ArrowUp,'KeyW not handled for Greek keyboard layout');
+for(let i=0;i<22;i++)api.update(.045);
+assert(api.game.heading>0,'Right arrow did not steer right');
+emitKey('keyup','ArrowRight','ArrowRight');emitKey('keyup','KeyW','ω');
+assert(!api.keys.ArrowRight&&!api.keys.ArrowUp,'Keyup did not release steering');
+api.game.mode='intro';api.startGame();api.game.station=api.checkpoints().length;
+emitKey('keydown','KeyA','α');emitKey('keydown','KeyW','ω');
+for(let i=0;i<22;i++)api.update(.045);
+assert(api.game.heading<0,'KeyA / left did not steer left on Greek layout');
+emitKey('keyup','KeyA','α');emitKey('keyup','KeyW','ω');
+api.game.mode='intro';api.startGame();api.game.station=api.checkpoints().length;
+emitKey('keydown','KeyD','δ');emitKey('keydown','KeyW','ω');
+for(let i=0;i<22;i++)api.update(.045);
+assert(api.game.heading>0,'KeyD / right did not steer right on Greek layout');
+emitKey('keyup','KeyD','δ');emitKey('keyup','KeyW','ω');
+
+// R recovers to the local road centre, not the beginning of the game.
+api.game.mode='intro';api.startGame();api.game.station=api.checkpoints().length;
+api.placeCarOnRoad(3500,api.MAX_SAFE_OFFSET-.13);
+api.game.railContactSide=1;api.game.speed=0;
+api.keys.ArrowUp=true;
+const beforeR=api.game.z,previousRecoveries=api.game.recoveries;
+e=emitKey('keydown','KeyR','ρ');
+assert(e.defaultPrevented,'KeyR must prevent browser defaults');
+assert.equal(api.game.recoveries,previousRecoveries+1,'KeyR did not call recoverCar()');
+assert(Math.abs(api.game.lane)<1e-8,'R did not centre the car');
+assert(beforeR-api.game.z>0&&beforeR-api.game.z<=30,'R teleported too far from player');
+assert(api.game.railContactSide===0,'R failed to clear barrier state');
+assert(!api.keys.ArrowUp,'R must release stale gas input');
+emitKey('keydown','KeyR','ρ',true);
+assert.equal(api.game.recoveries,previousRecoveries+1,'Held R caused repeated penalties');
+api.placeCarOnRoad(2000,api.MAX_SAFE_OFFSET-.12);
+api.game.mode='pause';
+const beforePause=api.game.recoveries;
+emitKey('keydown','KeyR','ρ');
+assert.equal(api.game.recoveries,beforePause+1,'R failed in paused mode');
+assert.equal(api.game.mode,'pause','R must not resume a paused race unexpectedly');
+console.log('Barrier unsticking and physical keyboard controls (Greek/English + R): passed.');
 
 // Collision damage must require spatial proximity, not merely route progress.
 api.game.mode='intro';api.startGame();
