@@ -12,7 +12,8 @@ script=script.replace('updateHUD();requestAnimationFrame(frame);',`
  globalThis.__test={game,questions:()=>questions,checkpoints:()=>CHECKPOINTS,
   setQuestionMode,startGame,beginQuiz,answerQuestion,advanceQuestion,endGame,
   trackLength:()=>TRACK_LENGTH,roadAngle,roadGrade,roadZ,roadElevation,render,
-  sceneryRoots,scenerySurfaceHeight,GROUND_Y,hazards,TURN_EVENTS,difficultyAt};
+  sceneryRoots,scenerySurfaceHeight,GROUND_Y,hazards,TURN_EVENTS,difficultyAt,
+  keys,update,nearestRoadPose,placeCarOnRoad,recoverCar,trackPoint};
  updateHUD();requestAnimationFrame(frame);`);
 function createElement(){
  const obj={children:[],textContent:'',innerHTML:'',style:{},dataset:{},hidden:false,disabled:false};
@@ -78,7 +79,7 @@ for(const [mode,config] of Object.entries(expected)){
  // The fallback renderer must work throughout the easy opening and all switchbacks.
  for(const sample of [0,200,900,1700,2800,3350,4250,7600,8500,11800,12700,16340,17260,20850,21750,config.distance-50]){
   if(sample>=config.distance)continue;
-  api.game.z=sample;api.render();
+  api.placeCarOnRoad(sample);api.render();
  }
  console.log(mode+': '+config.questions+' questions / '+config.stops+' checkpoints / '+config.distance+' m / '+right+' correct');
 }
@@ -103,12 +104,63 @@ assert(bendPeak>.12&&gradePeak>.012,'Opening must feature gentle, visible bends 
 assert(api.difficultyAt(0)===0);
 assert(api.difficultyAt(5000)<api.difficultyAt(9000));
 const firstHazards=api.hazards.filter(obj=>obj.z<2400);
-assert(firstHazards.length>0&&firstHazards.every(obj=>obj.type==='cone'),'Beginner obstacles should be sparse cones');
+assert(firstHazards.length>=3&&firstHazards.every(obj=>['cone','puddle'].includes(obj.type)),'Beginner obstacles should be sparse cones and puddles');
 const lateHazards=api.hazards.filter(obj=>obj.z>=17000&&obj.z<21000);
 const mediumHazards=api.hazards.filter(obj=>obj.z>=4000&&obj.z<8000);
 assert(lateHazards.length>mediumHazards.length,'Obstacle density should grow');
-assert(new Set(lateHazards.map(obj=>obj.type)).size>=3,'Late rally must contain several obstacles');
+assert(new Set(lateHazards.map(obj=>obj.type)).size>=6,'Late rally must contain varied obstacles');
+assert(new Set(api.hazards.map(obj=>obj.type)).size===8,'Eight hazards must occur across the course');
+assert(api.hazards.length>=80,'Hazards should appear throughout the route');
+assert(api.hazards.some(x=>x.z<700),'An early obstacle must be visible before 700m');
 console.log('Terrain verified:',api.sceneryRoots.length,'grounded objects,',api.hazards.length,'obstacles. Early:',firstHazards.length,'Intermediate:',mediumHazards.length,'Late:',lateHazards.length);
+// Manual driving regression: car position and compass heading are never slaved to roadAngle.
+function driveWith(arrow){
+ api.game.mode='intro';api.startGame();
+ api.game.station=api.checkpoints().length; // Isolate vehicle dynamics from quiz stops.
+ const initial={x:api.game.x,z:api.game.worldZ,heading:api.game.heading};
+ if(arrow!=='idle')api.keys.ArrowUp=true;
+ if(arrow==='right')api.keys.ArrowRight=true;
+ if(arrow==='left')api.keys.ArrowLeft=true;
+ for(let i=0;i<29;i++)api.update(.042);
+ const outcome={dx:api.game.x-initial.x,dz:api.game.worldZ-initial.z,
+  deltaHeading:api.game.heading-initial.heading,steer:api.game.steer,
+  recoveries:api.game.recoveries,speed:api.game.speed};
+ for(const key of Object.keys(api.keys))api.keys[key]=false;
+ return outcome;
+}
+const stationary=driveWith('idle'),rightDrive=driveWith('right'),leftDrive=driveWith('left'),straightDrive=driveWith('straight');
+assert.equal(stationary.dx,0,'No gas must not move the car');
+assert.equal(stationary.dz,0,'No gas must not move the car forward');
+assert.equal(stationary.deltaHeading,0,'Steering at a standstill cannot rotate the car');
+assert(rightDrive.dx>2&&rightDrive.deltaHeading>.1&&rightDrive.steer>.5,
+ 'Right arrow/D must rotate and drive RIGHT in world coordinates');
+assert(leftDrive.dx< -2&&leftDrive.deltaHeading<-.1&&leftDrive.steer<-.5,
+ 'Left arrow/A must rotate and drive LEFT in world coordinates');
+assert(Math.abs(straightDrive.dx)<1.5&&Math.abs(straightDrive.deltaHeading)<.001,
+ 'No steering must preserve world heading rather than automatically turning with road');
+console.log('Manual controls: idle',stationary,'right',rightDrive,'left',leftDrive,'straight',straightDrive);
+
+// Steering is necessary to take a hairpin. Keeping the car heading straight
+// eventually leads off road and triggers a visible recovery, not auto-follow.
+api.game.mode='intro';api.startGame();api.game.station=api.checkpoints().length;
+api.placeCarOnRoad(3300);api.keys.ArrowUp=true;
+for(let i=0;i<140;i++)api.update(.045);
+assert(api.game.recoveries>0||Math.abs(api.game.lane)>9.2,
+ 'Hairpin followed without any steering: hidden autopilot still exists');
+for(const key of Object.keys(api.keys))api.keys[key]=false;
+
+// Collision damage must require spatial proximity, not merely route progress.
+api.game.mode='intro';api.startGame();
+api.game.station=api.checkpoints().length;
+const obstacle=api.hazards[0];
+api.placeCarOnRoad(obstacle.z-2.6,obstacle.offset);
+api.game.speed=29;api.update(.07);
+assert(api.game.hits.size>=1,'Physical obstacle contact not detected');
+const farHitCount=api.game.hits.size;
+api.placeCarOnRoad(obstacle.z+8,-obstacle.offset);
+api.update(.08);
+assert.equal(api.game.hits.size,farHitCount,'Obstacle hit across opposite lane');
+console.log('Actual driving, hairpin failure and physical collisions: passed.');
 // A new run in the same mode must reshuffle its questions.
 api.game.mode='intro';api.setQuestionMode('both');api.startGame();
 const current=api.questions().map(q=>q.id);
