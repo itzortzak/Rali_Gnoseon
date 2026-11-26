@@ -98,6 +98,8 @@ button,input{font:inherit}button{cursor:pointer}button:disabled{opacity:.5;curso
 .road-alert{position:absolute;right:17px;top:96px;z-index:3;padding:10px 14px;border-radius:11px;border:1px solid #fee6a3;background:#173132e8;color:#ffe298;font-size:12px;font-weight:850;letter-spacing:.25px;max-width:230px;line-height:1.45;pointer-events:none}
 .road-alert[hidden]{display:none}
 @media(max-width:600px){.road-alert{right:9px;top:116px;font-size:10px;max-width:152px;padding:7px 9px}}
+.steer-indicator{margin-top:5px;color:#cee9da;font-size:11px;font-weight:650}
+.steer-indicator.offroad{color:#ffd58c}
 </style>
 </head>
 <body>
@@ -114,7 +116,7 @@ button,input{font:inherit}button{cursor:pointer}button:disabled{opacity:.5;curso
       <div class="metric wide"><span>ΣΤΑΣΕΙΣ · ΑΠΑΝΤΗΣΕΙΣ</span><strong id="stationCount">0 / 68</strong><em id="answeredCount">0 / 170</em></div>
     </div>
     <div class="toast" id="toast" role="status"></div><div class="road-alert" id="roadAlert" aria-live="off" hidden></div>
-    <div class="routebar"><div class="routebar-title"><span id="routeText">Θουκυδίδης & Ξενοφώντας</span><b id="distanceText">0 / 24.680 m</b></div><div class="track"><div id="progress"></div></div><div class="zone-indicator" id="biomeLabel">ΖΩΝΗ 1/7 · Πράσινοι λόφοι</div></div>
+    <div class="routebar"><div class="routebar-title"><span id="routeText">Θουκυδίδης & Ξενοφώντας</span><b id="distanceText">0 / 24.680 m</b></div><div class="track"><div id="progress"></div></div><div class="zone-indicator" id="biomeLabel">ΖΩΝΗ 1/7 · Πράσινοι λόφοι</div><div class="steer-indicator" id="steerStatus">Τιμόνι: ευθεία · Χειροκίνητη οδήγηση</div></div>
     <div class="helpbar">↑ / W Γκάζι · ↓ / S Φρένο · ← / A Αριστερά · → / D Δεξιά · R Επαναφορά · P Παύση</div>
     <div class="controls" id="touchControls" aria-label="Χειριστήρια αφής"><div class="pad"><button class="ctrl" data-key="ArrowLeft" aria-label="Αριστερά">←</button><button class="ctrl" data-key="ArrowRight" aria-label="Δεξιά">→</button></div><div class="pedals"><button class="ctrl" data-key="ArrowDown" aria-label="Φρένο">ΦΡΕΝΟ</button><button class="ctrl gas" data-key="ArrowUp" aria-label="Γκάζι">ΓΚΑΖΙ</button></div></div>
     <section class="layer" id="introLayer" aria-label="Έναρξη παιχνιδιού">
@@ -382,7 +384,7 @@ function roadBox(mesh,s,offset,height,w,h,d,col){
 // ROUTE_GEOMETRY_END
 function switchMode(mode){accountTime();game.mode=mode;Object.keys(layers).forEach(k=>layers[k].classList.toggle('hidden',k!==mode));updateClockHUD();if(mode==='playing')canvas.focus({preventScroll:true})}
 function startGame(){accountTime();const previousOrder=questions.map(q=>q.id);questions=shuffledQuestions();if(selectedMode!=='both')questions=questions.filter(q=>q.author===MODE_AUTHORS[selectedMode]);if(questions.length!==questionPoolForMode(selectedMode).length)throw Error('Ασυμφωνία επιλεγμένων ερωτήσεων.');if(questions.length>1&&previousOrder.length===questions.length&&questions.every((q,i)=>q.id===previousOrder[i]))[questions[0],questions[1]]=[questions[1],questions[0]];Object.assign(game,{mode:'intro',speed:0,z:0,lane:0,laneSpeed:0,steer:0,x:0,worldZ:0,heading:0,y:roadElevation(0),safeS:0,recoveries:0,time:0,totalTime:0,elapsedTime:0,questionTime:0,pauseTime:0,score:0,correct:0,station:0,question:0,localQuestion:0,selected:null,history:[],hits:new Set(),crashes:0});placeCarOnRoad(0);Object.keys(keys).forEach(k=>keys[k]=false);$('reviewPanel').hidden=true;$('reviewToggle').setAttribute('aria-expanded','false');$('answerHistory').replaceChildren();setReviewFilter('all',false);updateHUD();switchMode('playing');notify('Πάτησε ↑ ή W για να επιταχύνεις!')}
-function updateHUD(){ $('speed').textContent=Math.round(Math.abs(game.speed)*3.2);$('points').textContent=game.score;updateClockHUD();$('stationCount').textContent=`${game.station} / ${CHECKPOINTS.length}`;$('answeredCount').textContent=`${game.history.length} / ${questions.length}`;$('distanceText').textContent=`${Math.min(Math.floor(game.z),TRACK_LENGTH).toLocaleString('el-GR')} / ${TRACK_LENGTH.toLocaleString('el-GR')} m`;$('progress').style.width=`${Math.min(100,game.z/TRACK_LENGTH*100)}%`; $('routeText').textContent=game.station<CHECKPOINTS.length?`Επόμενη στάση σε ${Math.max(0,Math.ceil(CHECKPOINTS[game.station]-game.z))} m`:'Προς τον τερματισμό';const biome=biomeIndexForStage(game.station);$('biomeLabel').textContent=`ΖΩΝΗ ${biome+1}/${zoneCount()} · ${BIOMES[biome].name} · ${difficultyText(game.z)}`;updateRoadAlert()}
+function updateHUD(){ $('speed').textContent=Math.round(Math.abs(game.speed)*3.2);$('points').textContent=game.score;updateClockHUD();$('stationCount').textContent=`${game.station} / ${CHECKPOINTS.length}`;$('answeredCount').textContent=`${game.history.length} / ${questions.length}`;$('distanceText').textContent=`${Math.min(Math.floor(game.z),TRACK_LENGTH).toLocaleString('el-GR')} / ${TRACK_LENGTH.toLocaleString('el-GR')} m`;$('progress').style.width=`${Math.min(100,game.z/TRACK_LENGTH*100)}%`; $('routeText').textContent=game.station<CHECKPOINTS.length?`Επόμενη στάση σε ${Math.max(0,Math.ceil(CHECKPOINTS[game.station]-game.z))} m`:'Προς τον τερματισμό';const biome=biomeIndexForStage(game.station);$('biomeLabel').textContent=`ΖΩΝΗ ${biome+1}/${zoneCount()} · ${BIOMES[biome].name} · ${difficultyText(game.z)}`;updateRoadAlert();const guide=$('steerStatus');guide.textContent=Math.abs(game.lane)>ROAD_HALF?'ΕΚΤΟΣ ΔΡΟΜΟΥ · R για επαναφορά':game.steer>.15?'ΤΙΜΟΝΙ: ΔΕΞΙΑ →':game.steer<-.15?'ΤΙΜΟΝΙ: ← ΑΡΙΣΤΕΡΑ':'Τιμόνι: ευθεία · Χειροκίνητη οδήγηση';guide.classList.toggle('offroad',Math.abs(game.lane)>ROAD_HALF)}
 function updateRoadAlert(){
  const s=game.z,alert=$('roadAlert');
  if(game.mode!=='playing'){alert.hidden=true;return;}
@@ -769,13 +771,15 @@ $('changeModeBtn').addEventListener('click',()=>{
 function perspective(fov,aspect,near,far){const f=1/Math.tan(fov/2),out=new Float32Array(16);out[0]=f/aspect;out[5]=f;out[10]=(far+near)/(near-far);out[11]=-1;out[14]=2*far*near/(near-far);return out}
 function lookAt(eye,target){const z=norm(sub(eye,target)),x=norm(cross([0,1,0],z)),y=cross(z,x);return new Float32Array([x[0],y[0],z[0],0, x[1],y[1],z[1],0, x[2],y[2],z[2],0, -dot(x,eye),-dot(y,eye),-dot(z,eye),1])}
 function multiply(a,b){const c=new Float32Array(16);for(let i=0;i<4;i++)for(let j=0;j<4;j++)for(let k=0;k<4;k++)c[i*4+j]+=a[k*4+j]*b[i*4+k];return c}
-function carModel(s,lane,yaw){
- const position=trackPoint(s,lane,.14);
- const pitch=-Math.atan(roadGrade(s)),sp=Math.sin(pitch),cp=Math.cos(pitch);
- const co=Math.cos(yaw),si=Math.sin(yaw);
+function carModel(){
+ const position=[game.x,game.y,game.worldZ];
+ const pitch=Math.abs(game.lane)<ROAD_HALF+2?-Math.atan(roadGrade(game.z)):0;
+ const sp=Math.sin(pitch),cp=Math.cos(pitch);
+ const co=Math.cos(game.heading),si=Math.sin(game.heading);
  return new Float32Array([
- co,0,-si,0, si*sp,cp,co*sp,0, si*cp,-sp,co*cp,0,
- position[0],position[1],position[2],1]);
+  co,0,-si,0, si*sp,cp,co*sp,0, si*cp,-sp,co*cp,0,
+  position[0],position[1],position[2],1
+ ]);
 }
 function renderMesh(mesh,model){gl.uniformMatrix4fv(modelLoc,false,model);gl.bindBuffer(gl.ARRAY_BUFFER,mesh.buf);gl.enableVertexAttribArray(posLoc);gl.vertexAttribPointer(posLoc,3,gl.FLOAT,false,24,0);gl.enableVertexAttribArray(colorLoc);gl.vertexAttribPointer(colorLoc,3,gl.FLOAT,false,24,12);gl.drawArrays(gl.TRIANGLES,0,mesh.count)}
 let width=0,height=0;
@@ -789,13 +793,14 @@ function renderFallback(){
  sky.addColorStop(0,rgb(biome.sky));sky.addColorStop(.72,rgb(biome.hill));sky.addColorStop(1,rgb(biome.ground));
  ctx.fillStyle=sky;ctx.fillRect(0,0,w,h);
  // Match the WebGL chase camera: use geometric depth instead of route distance.
- const current=trackPoint(game.z,game.lane),angle=roadAngle(game.z);
- const eye=[current[0]-Math.sin(angle)*21-Math.cos(angle)*1.25,current[1]+10.2,
-            current[2]-Math.cos(angle)*21+Math.sin(angle)*1.25];
- const target=trackPoint(Math.min(game.z+20,FULL_TRACK_END+80),game.lane*.22,1.65);
+ const angle=game.heading;
+ const eye=[game.x-Math.sin(angle)*21-Math.cos(angle)*1.25,game.y+10.2,
+            game.worldZ-Math.cos(angle)*21+Math.sin(angle)*1.25];
+ const target=[game.x+Math.sin(angle)*27,game.y+2.0,game.worldZ+Math.cos(angle)*27];
  const cameraForward=norm(sub(target,eye));
- const cameraRight=norm(cross(cameraForward,[0,1,0]));
- const cameraUp=cross(cameraRight,cameraForward);
+ // The old fallback had its horizontal axis mirrored: right appeared left.
+ const cameraRight=norm(cross([0,1,0],cameraForward));
+ const cameraUp=cross(cameraForward,cameraRight);
  const focal=h*.5/Math.tan((Math.PI/2.70)*.5);
  ctx.fillStyle=rgb(biome.hill);ctx.beginPath();ctx.moveTo(0,h*.5);
  for(let x=0;x<=w;x+=18)ctx.lineTo(x,h*(.44+.029*Math.sin(x*.012)+.024*Math.cos(x*.035)));
@@ -889,59 +894,92 @@ function renderFallback(){
 function render(){
  resize();
  if(fallbackCtx){renderFallback();return;}
- const s=game.z,angle=roadAngle(s),pos=trackPoint(s,game.lane);
- const eye=[pos[0]-Math.sin(angle)*21-Math.cos(angle)*1.25,pos[1]+10.2,
-            pos[2]-Math.cos(angle)*21+Math.sin(angle)*1.25];
- // Follow the next short section instead of aiming across the inside of a hairpin.
- const forward=trackPoint(Math.min(s+20,FULL_TRACK_END+80),game.lane*.22,1.65);
- const vp=multiply(perspective(Math.PI/2.70,width/height,.15,820),lookAt(eye,forward));
- const zone=BIOMES[biomeIndexForZ(s)],yaw=angle+game.steer*.10+game.laneSpeed*.009;
+ const angle=game.heading;
+ const eye=[game.x-Math.sin(angle)*21-Math.cos(angle)*1.25,game.y+10.2,
+            game.worldZ-Math.cos(angle)*21+Math.sin(angle)*1.25];
+ const target=[game.x+Math.sin(angle)*27,game.y+2,game.worldZ+Math.cos(angle)*27];
+ const vp=multiply(perspective(Math.PI/2.70,width/height,.15,820),lookAt(eye,target));
+ const zone=BIOMES[biomeIndexForZ(game.z)];
  gl.clearColor(...zone.sky,1);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
  gl.enable(gl.DEPTH_TEST);gl.disable(gl.CULL_FACE);gl.useProgram(program);
  gl.uniformMatrix4fv(vpLoc,false,vp);gl.uniform3f(eyeLoc,...eye);gl.uniform3f(fogLoc,...zone.sky);
  renderMesh(terrain,ID);
  if(customFinishArch)renderMesh(customFinishArch,ID);
- renderMesh(carMesh,carModel(s,game.lane,yaw));
+ renderMesh(carMesh,carModel());
 }
 function update(dt){
- if(game.mode!=='playing')return;
- const up=!!keys.ArrowUp,down=!!keys.ArrowDown,left=!!keys.ArrowLeft,right=!!keys.ArrowRight;
- const targetSteer=(right?1:0)-(left?1:0);
- game.steer+=(targetSteer-game.steer)*Math.min(1,dt*7.2);
- const grade=roadGrade(game.z),curvature=roadCurvature(game.z);
- const off=Math.abs(game.lane)>ROAD_HALF-1.25;
- let acceleration=up?25:down?-38:-4.7-game.speed*.060;
- if(up&&down)acceleration=-38;
- // More throttle is required climbing hills, gravity helps on descents.
- acceleration-=grade*56;
- if(off&&game.speed>14)acceleration-=24;
- game.speed=Math.max(0,Math.min(54,game.speed+acceleration*dt));
- // Increase lateral inertia progressively; novice stages remain forgiving.
- const outward=-curvature*game.speed*game.speed*(.12+.19*difficultyAt(game.z));
- const desiredSide=game.steer*game.speed*.46+outward;
- game.laneSpeed+=(desiredSide-game.laneSpeed)*Math.min(1,dt*3.5);
- game.lane+=game.laneSpeed*dt;
- const limit=ROAD_HALF+1.3;
- if(Math.abs(game.lane)>limit){
-   game.lane=Math.max(-limit,Math.min(limit,game.lane));
-   game.speed*=.72;game.laneSpeed=0;
-   game.score=Math.max(0,game.score-8);
-   notify('Εκτός δρόμου: μείωσε ταχύτητα στις στροφές!');
- }
+ if(game.mode!=='playing'||dt<=0)return;
+ const up=!!keys.ArrowUp,down=!!keys.ArrowDown;
+ const left=!!keys.ArrowLeft,right=!!keys.ArrowRight;
+ const requested=(right?1:0)-(left?1:0);
+ game.steer+=(requested-game.steer)*Math.min(1,dt*9);
  const previous=game.z;
- game.z+=game.speed*dt;
+ const grade=roadGrade(game.z);
+ const offRoad=Math.abs(game.lane)>ROAD_HALF;
+ // No automatic accelerator. Releasing W/↑ slows the car with engine braking.
+ let acceleration=up?27:down?-52:-11-game.speed*.10;
+ if(up&&down)acceleration=-52;
+ acceleration-=grade*36;
+ if(offRoad)acceleration-=12;
+ game.speed=Math.max(0,Math.min(48,game.speed+acceleration*dt));
+ // Positive steering rotates towards +X (right from the driver's perspective);
+ // negative steering rotates towards -X. No road angle is applied to heading.
+ const turnGain=.025*(1-.08*difficultyAt(game.z));
+ game.heading+=game.steer*game.speed*turnGain*dt;
+ game.x+=Math.sin(game.heading)*game.speed*dt;
+ game.worldZ+=Math.cos(game.heading)*game.speed*dt;
+ // Measure progress by projecting the actual vehicle position on the nearby road.
+ // This does NOT change the vehicle's world coordinates or heading.
+ const nearest=nearestRoadPose(game.x,game.worldZ,previous);
+ game.z=Math.min(TRACK_LENGTH,Math.max(0,nearest.s));
+ game.lane=nearest.offset;
+ const carGround=Math.abs(game.lane)<ROAD_HALF+2
+   ?roadElevation(game.z)+.16:scenerySurfaceHeight(game.z,game.lane)+.16;
+ game.y+=(carGround-game.y)*Math.min(1,dt*7);
+ const facing=Math.cos(game.heading-roadAngle(game.z));
+ if(Math.abs(game.lane)<ROAD_HALF-1.1&&facing>.15)game.safeS=game.z;
+ if(Math.abs(game.lane)>ROAD_HALF+5){
+   game.speed=Math.max(0,game.speed-23*dt);
+ }
+ if(Math.abs(game.lane)>ROAD_HALF+20){
+   recoverCar(false);return;
+ }
+ // Use actual 3D proximity to obstacles: being on the same route station alone
+ // does not count as a collision if the driver avoided the object.
  for(let i=0;i<hazards.length;i++){
    const h=hazards[i];
-   if(!game.hits.has(i)&&previous<h.z+2.6&&game.z>=h.z-2.6&&Math.abs(game.lane-h.offset)<h.radius+1){
-     game.hits.add(i);game.speed*=h.type==='barrier'?.29:.48;
-     game.score=Math.max(0,game.score-(h.type==='barrier'?35:20));game.crashes++;
-     notify(h.type==='barrier'?'Πρόσκρουση σε οδόφραγμα: −35 βαθμοί':'Πρόσκρουση σε εμπόδιο: −20 βαθμοί');
+   if(game.hits.has(i)||Math.abs(h.z-game.z)>15)continue;
+   const p=trackPoint(h.z,h.offset,.10);
+   const gap=Math.hypot(game.x-p[0],game.worldZ-p[2]);
+   if(gap<h.radius+1.15){
+     game.hits.add(i);game.crashes++;
+     const severe=['barrier','log','crate','tyres'].includes(h.type);
+     game.speed*=severe?.32:h.type==='puddle'?.74:.49;
+     const penalty=severe?35:h.type==='puddle'?10:20;
+     game.score=Math.max(0,game.score-penalty);
+     notify('Εμπόδιο: '+h.label+' · −'+penalty+' βαθμοί');
    }
  }
+ // A checkpoint is reached only by physically crossing the gate ON the road.
+ // Invalid crossings are returned before the gate, so no questions can be skipped.
  if(game.station<CHECKPOINTS.length&&previous<CHECKPOINTS[game.station]&&game.z>=CHECKPOINTS[game.station]){
-   game.z=CHECKPOINTS[game.station];updateHUD();beginQuiz();return;
+   const gate=CHECKPOINTS[game.station];
+   if(Math.abs(game.lane)<=ROAD_HALF-1&&facing>.25){
+     game.z=gate;game.safeS=gate;updateHUD();beginQuiz();return;
+   }
+   placeCarOnRoad(Math.max(0,gate-25));
+   game.score=Math.max(0,game.score-12);
+   notify('Πέρασε τη στάση από τον δρόμο · −12 βαθμοί');
+   updateHUD();return;
  }
- if(game.z>=TRACK_LENGTH){game.z=TRACK_LENGTH;updateHUD();endGame();return;}
+ if(game.z>=TRACK_LENGTH&&game.station===CHECKPOINTS.length){
+   if(Math.abs(game.lane)<=ROAD_HALF-1&&facing>.25){
+     game.z=TRACK_LENGTH;updateHUD();endGame();return;
+   }
+   placeCarOnRoad(TRACK_LENGTH-24);
+   notify('Πέρασε τη γραμμή τερματισμού από τον δρόμο.');
+   updateHUD();return;
+ }
  updateHUD();
 }
 let last=performance.now();function frame(now){const dt=Math.min(Math.max((now-last)/1000,0),.045);last=now;accountTime(now);update(dt);if(game.mode==='quiz'||game.mode==='pause')updateClockHUD();render();requestAnimationFrame(frame)}
